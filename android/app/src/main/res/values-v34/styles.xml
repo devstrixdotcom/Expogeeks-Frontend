@@ -1,0 +1,12 @@
+<resources>
+    <style name="Ucrop.CropTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Opt out of forced edge-to-edge -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+
+        <item name="colorPrimary">#009688</item>
+        <item name="colorPrimaryDark">#00796B</item>
+        <item name="colorAccent">#FFFFFF</item>
+        <item name="android:statusBarColor">#00796B</item>
+        <item name="android:navigationBarColor">#000000</item>
+    </style>
+</resources>
