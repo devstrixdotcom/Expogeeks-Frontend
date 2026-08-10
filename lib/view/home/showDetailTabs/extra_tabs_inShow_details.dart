@@ -448,7 +448,7 @@
 //                             String organizerId =
 //                                 base64Encode(utf8.encode(widget.categoryId));
 //                             String message =
-//                                 "${widget.titleName}\nGet your tickets here:\nhttp://18.213.101.107/tickets.php?organizerId=$organizerId";
+//                                 "${widget.titleName}\nGet your tickets here:\nhttps://www.expogeeks.co.uk/tickets.php?organizerId=$organizerId";
 //                             Share.share(message, subject: widget.titleName);
 //                           },
 //                         ),
@@ -1191,7 +1191,7 @@ class _ExtraTabsInShowsDetailsState extends State<ExtraTabsInShowsDetails> {
                             String organizerId =
                                 base64Encode(utf8.encode(widget.categoryId));
                             String message =
-                                "${widget.titleName}\nGet your tickets here:\nhttp://18.213.101.107/tickets.php?organizerId=$organizerId";
+                                "${widget.titleName}\nGet your tickets here:\nhttps://www.expogeeks.co.uk/tickets.php?organizerId=$organizerId";
                             Share.share(message, subject: widget.titleName);
                           },
                         ),

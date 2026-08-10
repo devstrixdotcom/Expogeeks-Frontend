@@ -73,7 +73,7 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(
                 builder: (context) => WebScreen(
                     initialUrl:
-                        'http://18.213.101.107/api/content/Terms.php',
+                        'https://www.expogeeks.co.uk/api/content/Terms.php',
                     titleText: 'Terms & Conditions')));
       };
     final priavcyTapRecognizer = TapGestureRecognizer()
@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
             MaterialPageRoute(
                 builder: (context) => WebScreen(
                     initialUrl:
-                        'http://18.213.101.107/api/content/PrivacyPolicy.php',
+                        'https://www.expogeeks.co.uk/api/content/PrivacyPolicy.php',
                     titleText: 'Privacy Policy')));
       };
     var height = MediaQuery.of(context).size.height;
@@ -208,7 +208,13 @@ class _LoginPageState extends State<LoginPage> {
                                       isOtpSent = true;
                                     });
                                   } else {
-                                    showToast('Try again in 10 seconds');
+                                    // sendOTP returns null for any transport or
+                                    // non-200 failure, so this is usually the
+                                    // backend being unreachable rather than a
+                                    // rate limit. Say so instead of implying a
+                                    // retry will help.
+                                    showToast(
+                                        'Could not reach the server. Check your connection and try again.');
                                   }
                                 } catch (e) {
                                   showToast('Error sending OTP');

@@ -180,7 +180,7 @@ class _OffersScreenState extends State<OffersScreen> {
                       onPress: () {
                         String message = "*To Get Offer Visit ${widget.exhibitorName} at ${widget.titleName}*\n"
                             "Get your tickets here:\n"
-                            "http://18.213.101.107/tickets.php?organizerId=Mg==";
+                            "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
 
                         Share.share(message,
                             subject: offersListItem.description);

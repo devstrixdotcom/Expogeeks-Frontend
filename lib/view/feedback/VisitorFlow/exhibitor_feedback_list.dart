@@ -247,7 +247,7 @@ class _ExhibitorFeedbackListScreenState
                   //   w: width,
                   //   onPress: () {
                   //     String message = "🎟 Get your tickets here: 👇\n"
-                  //         "🔗 http://18.213.101.107/tickets.php?organizerId=Mg==";
+                  //         "🔗 https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
 
                   //     Share.share(message, subject: "Get your tickets here");
                   //   },

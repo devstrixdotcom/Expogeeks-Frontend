@@ -764,7 +764,7 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                       // "*${widget.titleName}*\n"
                                                       // "🎟 Get your tickets here: 👇\n "
                                                       "Visit ${widget.titleName} at ${widget.showName}:\n"
-                                                      "http://18.213.101.107/tickets.php?organizerId=Mg==";
+                                                      "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
 
                                                   Share.share(message,
                                                       subject: exhibitorDetails!
@@ -927,7 +927,7 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                         context);
                                                   } else if (value == "share") {
                                                     // Share.share(
-                                                    //     'http://18.213.101.107/tickets.php?organizerId=Mg==',
+                                                    //     'https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==',
                                                     //     subject:
                                                     //         exhibitorDetails!
                                                     //             .name);
@@ -935,14 +935,14 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                       // "*${widget.titleName}*\n"
                                                       // "🎟 Get your tickets here: 👇\n "
                                                       "Visit ${widget.titleName} at ${widget.showName}:\n"
-                                                      "http://18.213.101.107/tickets.php?organizerId=Mg==";
+                                                      "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
 
                                                   Share.share(message,
                                                       subject: exhibitorDetails!
                                                           .name);
 
                                                     // Share.share(
-                                                    //     'http://18.213.101.107/tickets.php?organizerId=Mg==',
+                                                    //     'https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==',
                                                     //     subject:
                                                     //         exhibitorDetails!
                                                     //             .name);

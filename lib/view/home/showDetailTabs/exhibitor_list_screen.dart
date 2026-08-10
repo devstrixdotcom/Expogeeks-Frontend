@@ -323,7 +323,7 @@ class _ExhibitorListingScreenState extends State<ExhibitorListingScreen> {
                           //     image: sendIcon,
                           //     onPress: () {
                           //       Share.share(
-                          //         'http://18.213.101.107/tickets.php?organizerId=Mg==',
+                          //         'https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==',
                           //         subject: listValue[i].name,
                           //       );
                           //     })
@@ -333,12 +333,12 @@ class _ExhibitorListingScreenState extends State<ExhibitorListingScreen> {
                             onPress: () {
                               // String message = "*${widget.title}*\n"
                               //     "🎟 Get your tickets here: 👇\n"
-                              //     "🔗 http://18.213.101.107/tickets.php?organizerId=Mg==";
+                              //     "🔗 https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
                               debugPrint(
                                   "listValue name: ${listValue[i].name ?? ''}");
                               String message =
                                   "Visit ${listValue[i].name ?? ''} at ${widget.showName}:\n"
-                                  "http://18.213.101.107/tickets.php?organizerId=Mg==";
+                                  "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
 
                               Share.share(message, subject: listValue[i].name);
                             },

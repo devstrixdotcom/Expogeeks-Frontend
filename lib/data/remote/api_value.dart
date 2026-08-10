@@ -24,7 +24,7 @@ class APIvalue {
   // [1] = live backend (AWS EC2)
   static List<String> url = [
     'http://192.168.18.9:8000/api/',
-    'http://18.213.101.107/api/',
+    'https://www.expogeeks.co.uk/api/',
   ];
 
   // 1 = use live backend, 0 = use local LAN backend

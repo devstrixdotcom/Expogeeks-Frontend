@@ -478,7 +478,7 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
                             base64Encode(utf8.encode(widget.categoryId));
                         String message = "${widget.title}\n"
                             "Get your tickets here:\n"
-                            "http://18.213.101.107/tickets.php?organizerId=$organizerId";
+                            "https://www.expogeeks.co.uk/tickets.php?organizerId=$organizerId";
 
                         Share.share(message, subject: widget.title);
                       }),
