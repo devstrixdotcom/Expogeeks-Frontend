@@ -28,7 +28,7 @@ workflows:
     integrations:
       # Name of the App Store Connect API key added in
       # Codemagic > Teams/Personal settings > Integrations > Developer Portal
-      app_store_connect: EventsPro ASC Key
+      app_store_connect: ExpoGeeks_ASC
     environment:
       <<: *flutter_env
       ios_signing:
