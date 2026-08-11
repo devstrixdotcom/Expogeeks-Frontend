@@ -45,13 +45,11 @@ workflows:
           echo "BUILD_NUMBER=$(($LATEST + 1))" >> $CM_ENV
       - *pub_get
       - *pod_install
-      - name: Set up signing certificate and profile
-        script: |
-          keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE --create
-          keychain add-certificates
-          xcode-project use-profiles
+      # Signing is handled automatically by the `ios_signing` block above:
+      # Codemagic fetches (or creates) the distribution certificate and
+      # provisioning profile via the App Store Connect integration, installs
+      # them into the build keychain, and writes ~/export_options.plist.
+      # Do NOT add `keychain initialize` here — it wipes that setup.
       - name: Flutter build ipa
         script: |
           flutter build ipa --release \
