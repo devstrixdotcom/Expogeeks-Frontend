@@ -28,6 +28,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>This app requires access to your media library to save and open downloaded event files.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>This app requires access to your calendar for saving your events booking.</string>
 	<key>NSCameraUsageDescription</key>

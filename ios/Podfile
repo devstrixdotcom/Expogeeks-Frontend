@@ -1,5 +1,4 @@
-# Uncomment this line to define a global platform for your project
-# platform :ios, '12.0'
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -44,10 +43,39 @@ post_install do |installer|
       # Exclude arm64 for simulator
       config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
 
-      # Add microphone permission macro
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= [
+      # App Store requires MinimumOSVersion >= 15.0 from Spring 2027.
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+
+      # permission_handler compiles EVERY permission handler on iOS unless each
+      # unused one is explicitly set to 0. Leaving them on makes the binary
+      # reference APIs the app never calls (CLLocationManager, CNContactStore,
+      # ...), which triggers App Store warning ITMS-90683 demanding a purpose
+      # string for data we do not collect. Assign with = rather than ||= so this
+      # list is authoritative.
+      #
+      # Keep this in sync with the Permission.* values used in lib/ and with the
+      # NS*UsageDescription keys in ios/Runner/Info.plist. Flipping one to 1
+      # here also requires adding its purpose string there.
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = [
         '$(inherited)',
-        'PERMISSION_MICROPHONE=1'
+        # Used by the app.
+        'PERMISSION_CAMERA=1',              # mobile_scanner, image_picker
+        'PERMISSION_MICROPHONE=1',          # audio feedback recording
+        'PERMISSION_NOTIFICATIONS=1',       # flutter_local_notifications, FCM
+        'PERMISSION_PHOTOS=1',              # saving/attaching images
+        'PERMISSION_MEDIA_LIBRARY=1',       # Permission.mediaLibrary
+        # Not used — excluded so their APIs stay out of the binary.
+        'PERMISSION_LOCATION=0',
+        'PERMISSION_EVENTS=0',
+        'PERMISSION_EVENTS_FULL_ACCESS=0',
+        'PERMISSION_REMINDERS=0',
+        'PERMISSION_CONTACTS=0',
+        'PERMISSION_SPEECH_RECOGNIZER=0',
+        'PERMISSION_SENSORS=0',
+        'PERMISSION_BLUETOOTH=0',
+        'PERMISSION_APP_TRACKING_TRANSPARENCY=0',
+        'PERMISSION_CRITICAL_ALERTS=0',
+        'PERMISSION_ASSISTANT=0'
       ]
     end
   end
