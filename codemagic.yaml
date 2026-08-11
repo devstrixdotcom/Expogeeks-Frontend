@@ -54,37 +54,66 @@ workflows:
       - name: Build signed IPA with an incremented build number
         script: |
           set -e
-          # get-latest-build-number returns the highest build across BOTH
-          # TestFlight and App Store. get-latest-app-store-build-number only
-          # sees builds attached to an App Store version, so TestFlight-only
-          # uploads are invisible to it and it hands back an already-used
-          # number (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
-          LATEST=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "")
-          if ! echo "$LATEST" | grep -qE '^[0-9]+$'; then
-            echo "ERROR: could not read the latest build number from App Store Connect."
-            echo "       Got: '$LATEST'"
+          # A single source of truth is not enough here. Each of these can lag:
+          #   - get-latest-build-number sees TestFlight + App Store, but a build
+          #     that is still processing / invalid / expired can be missing from
+          #     it, so it hands back an already-used number and the upload 409s
+          #     (ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
+          #   - get-latest-testflight-build-number sees the beta side only.
+          #   - pubspec.yaml records what we last intended to ship.
+          # Take the highest of all three, then +1. That is monotonic even when
+          # one of the API answers is stale.
+          ASC=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" 2>/dev/null | tr -dc '0-9')
+          TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null | tr -dc '0-9')
+          # Only the part after "+" is a build number; a version line without
+          # one contributes nothing rather than a bogus digits-only reading.
+          PUBSPEC=$(grep -E '^version:.*\+[0-9]+' pubspec.yaml | sed -E 's/.*\+//' | tr -dc '0-9')
+
+          echo "==> Latest build number reported by App Store Connect: '${ASC:-none}'"
+          echo "==> Latest build number reported by TestFlight:        '${TF:-none}'"
+          echo "==> Build number in pubspec.yaml:                      '${PUBSPEC:-none}'"
+
+          if [ -z "$ASC" ] && [ -z "$TF" ]; then
+            echo "ERROR: could not read any build number from App Store Connect."
             echo "       Any number guessed here risks colliding again, so stopping."
             echo "       Check that the ASC API key has Developer Portal access and"
             echo "       that APP_STORE_APPLE_ID ($APP_STORE_APPLE_ID) is correct."
             exit 1
           fi
+
+          LATEST=0
+          for CANDIDATE in "$ASC" "$TF" "$PUBSPEC"; do
+            if [ -n "$CANDIDATE" ] && [ "$CANDIDATE" -gt "$LATEST" ]; then
+              LATEST=$CANDIDATE
+            fi
+          done
+
           NEXT_BUILD_NUMBER=$((LATEST + 1))
-          echo "==> Highest build number in App Store Connect: $LATEST"
-          echo "==> Building build number:                     $NEXT_BUILD_NUMBER"
+          echo "==> Highest build number seen anywhere: $LATEST"
+          echo "==> Building build number:              $NEXT_BUILD_NUMBER"
 
           flutter build ipa --release \
             --build-number="$NEXT_BUILD_NUMBER" \
             --export-options-plist=/Users/builder/export_options.plist
 
-          # Ground truth: read the versions back out of the built app rather
-          # than trusting what we passed in.
+          # Ground truth: read the version back out of the built app rather than
+          # trusting what we passed in, and fail here rather than at upload time
+          # if the archive was stamped with something that will be rejected.
           APP_PLIST=build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app/Info.plist
-          if [ -f "$APP_PLIST" ]; then
-            echo "==> Versions actually stamped into the archive:"
-            echo "    CFBundleShortVersionString = $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
-            echo "    CFBundleVersion            = $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")"
-          else
-            echo "WARNING: archive Info.plist not found at $APP_PLIST"
+          if [ ! -f "$APP_PLIST" ]; then
+            echo "ERROR: archive Info.plist not found at $APP_PLIST"
+            exit 1
+          fi
+          SHORT_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")
+          BUILT_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")
+          echo "==> Versions actually stamped into the archive:"
+          echo "    CFBundleShortVersionString = $SHORT_VERSION"
+          echo "    CFBundleVersion            = $BUILT_VERSION"
+          if [ "$BUILT_VERSION" != "$NEXT_BUILD_NUMBER" ]; then
+            echo "ERROR: the archive was stamped with build $BUILT_VERSION, not the"
+            echo "       requested $NEXT_BUILD_NUMBER. Uploading it would collide with"
+            echo "       an existing build, so stopping before publish."
+            exit 1
           fi
     artifacts:
       - build/ios/ipa/*.ipa
