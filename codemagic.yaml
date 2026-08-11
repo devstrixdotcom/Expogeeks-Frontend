@@ -40,9 +40,21 @@ workflows:
     scripts:
       - name: Set build number from App Store Connect
         script: |
-          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" || echo 0)
-          echo "Latest build number in ASC: $LATEST"
-          echo "BUILD_NUMBER=$(($LATEST + 1))" >> $CM_ENV
+          set -e
+          # Use get-latest-build-number, NOT get-latest-app-store-build-number.
+          # The latter only sees builds attached to an App Store version, so
+          # TestFlight-only uploads are invisible to it and it returns a number
+          # that has already been used (upload then fails with a 409
+          # ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE on cfBundleVersion).
+          LATEST=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "")
+          if ! echo "$LATEST" | grep -qE '^[0-9]+$'; then
+            echo "WARNING: could not read latest build number (got: '$LATEST')."
+            echo "Falling back to Codemagic's build counter."
+            LATEST=${BUILD_NUMBER:-0}
+          fi
+          NEXT=$((LATEST + 1))
+          echo "Latest build number in App Store Connect: $LATEST -> building $NEXT"
+          echo "BUILD_NUMBER=$NEXT" >> $CM_ENV
       - *pub_get
       - *pod_install
       # Signing is handled automatically by the `ios_signing` block above:
