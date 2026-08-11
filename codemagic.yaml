@@ -38,23 +38,6 @@ workflows:
         BUNDLE_ID: "com.eventspro.app"
         APP_STORE_APPLE_ID: 6748144941
     scripts:
-      - name: Set build number from App Store Connect
-        script: |
-          set -e
-          # Use get-latest-build-number, NOT get-latest-app-store-build-number.
-          # The latter only sees builds attached to an App Store version, so
-          # TestFlight-only uploads are invisible to it and it returns a number
-          # that has already been used (upload then fails with a 409
-          # ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE on cfBundleVersion).
-          LATEST=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "")
-          if ! echo "$LATEST" | grep -qE '^[0-9]+$'; then
-            echo "WARNING: could not read latest build number (got: '$LATEST')."
-            echo "Falling back to Codemagic's build counter."
-            LATEST=${BUILD_NUMBER:-0}
-          fi
-          NEXT=$((LATEST + 1))
-          echo "Latest build number in App Store Connect: $LATEST -> building $NEXT"
-          echo "BUILD_NUMBER=$NEXT" >> $CM_ENV
       - *pub_get
       - *pod_install
       # Signing is handled automatically by the `ios_signing` block above:
@@ -62,11 +45,47 @@ workflows:
       # provisioning profile via the App Store Connect integration, installs
       # them into the build keychain, and writes ~/export_options.plist.
       # Do NOT add `keychain initialize` here — it wipes that setup.
-      - name: Flutter build ipa
+      #
+      # The lookup and the build are deliberately ONE step. Passing the value
+      # between steps via $CM_ENV requires naming the variable, and BUILD_NUMBER
+      # is a reserved Codemagic built-in (the workflow's own build counter) that
+      # Codemagic re-injects into every step, clobbering ours. Computing and
+      # consuming NEXT_BUILD_NUMBER in a single shell avoids that entirely.
+      - name: Build signed IPA with an incremented build number
         script: |
+          set -e
+          # get-latest-build-number returns the highest build across BOTH
+          # TestFlight and App Store. get-latest-app-store-build-number only
+          # sees builds attached to an App Store version, so TestFlight-only
+          # uploads are invisible to it and it hands back an already-used
+          # number (409 ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
+          LATEST=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "")
+          if ! echo "$LATEST" | grep -qE '^[0-9]+$'; then
+            echo "ERROR: could not read the latest build number from App Store Connect."
+            echo "       Got: '$LATEST'"
+            echo "       Any number guessed here risks colliding again, so stopping."
+            echo "       Check that the ASC API key has Developer Portal access and"
+            echo "       that APP_STORE_APPLE_ID ($APP_STORE_APPLE_ID) is correct."
+            exit 1
+          fi
+          NEXT_BUILD_NUMBER=$((LATEST + 1))
+          echo "==> Highest build number in App Store Connect: $LATEST"
+          echo "==> Building build number:                     $NEXT_BUILD_NUMBER"
+
           flutter build ipa --release \
-            --build-number=$BUILD_NUMBER \
+            --build-number="$NEXT_BUILD_NUMBER" \
             --export-options-plist=/Users/builder/export_options.plist
+
+          # Ground truth: read the versions back out of the built app rather
+          # than trusting what we passed in.
+          APP_PLIST=build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app/Info.plist
+          if [ -f "$APP_PLIST" ]; then
+            echo "==> Versions actually stamped into the archive:"
+            echo "    CFBundleShortVersionString = $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")"
+            echo "    CFBundleVersion            = $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")"
+          else
+            echo "WARNING: archive Info.plist not found at $APP_PLIST"
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
