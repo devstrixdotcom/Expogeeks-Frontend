@@ -54,15 +54,28 @@ workflows:
       - name: Build signed IPA with an incremented build number
         script: |
           set -e
-          # A single source of truth is not enough here. Each of these can lag:
-          #   - get-latest-build-number sees TestFlight + App Store, but a build
-          #     that is still processing / invalid / expired can be missing from
-          #     it, so it hands back an already-used number and the upload 409s
-          #     (ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE).
-          #   - get-latest-testflight-build-number sees the beta side only.
-          #   - pubspec.yaml records what we last intended to ship.
-          # Take the highest of all three, then +1. That is monotonic even when
-          # one of the API answers is stale.
+          # The build number is derived from the clock, NOT from the highest
+          # build already in App Store Connect.
+          #
+          # Asking ASC for the latest build and adding 1 looks obvious and is
+          # wrong: a freshly uploaded build stays invisible to that API while
+          # Apple processes it (minutes to hours). Two runs in that window both
+          # read the same stale "latest" and both compute the same next number,
+          # so the second upload 409s with
+          # ENTITY_ERROR.ATTRIBUTE.INVALID.DUPLICATE against the build the first
+          # run just shipped. Reruns cannot break the tie either - they keep
+          # recomputing the same number until Apple catches up.
+          #
+          # Minutes elapsed since 2025-01-01 is strictly increasing, needs no
+          # remote state, and cannot repeat: an iOS archive takes far longer
+          # than the one minute of resolution. ~850000 today, 6 digits, well
+          # inside what CFBundleVersion accepts. It only ever grows.
+          EPOCH_BASE=1735689600
+          NEXT_BUILD_NUMBER=$(( ($(date -u +%s) - EPOCH_BASE) / 60 ))
+
+          # ASC is still consulted, but only as a floor: if it somehow reports a
+          # number at or above ours, step above it rather than fail the upload.
+          # Empty answers are fine here - the clock already guarantees progress.
           ASC=$(app-store-connect get-latest-build-number "$APP_STORE_APPLE_ID" 2>/dev/null | tr -dc '0-9')
           TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null | tr -dc '0-9')
           # Only the part after "+" is a build number; a version line without
@@ -72,25 +85,16 @@ workflows:
           echo "==> Latest build number reported by App Store Connect: '${ASC:-none}'"
           echo "==> Latest build number reported by TestFlight:        '${TF:-none}'"
           echo "==> Build number in pubspec.yaml:                      '${PUBSPEC:-none}'"
+          echo "==> Clock-derived build number:                        $NEXT_BUILD_NUMBER"
 
-          if [ -z "$ASC" ] && [ -z "$TF" ]; then
-            echo "ERROR: could not read any build number from App Store Connect."
-            echo "       Any number guessed here risks colliding again, so stopping."
-            echo "       Check that the ASC API key has Developer Portal access and"
-            echo "       that APP_STORE_APPLE_ID ($APP_STORE_APPLE_ID) is correct."
-            exit 1
-          fi
-
-          LATEST=0
           for CANDIDATE in "$ASC" "$TF" "$PUBSPEC"; do
-            if [ -n "$CANDIDATE" ] && [ "$CANDIDATE" -gt "$LATEST" ]; then
-              LATEST=$CANDIDATE
+            if [ -n "$CANDIDATE" ] && [ "$CANDIDATE" -ge "$NEXT_BUILD_NUMBER" ]; then
+              echo "    (raising above known build $CANDIDATE)"
+              NEXT_BUILD_NUMBER=$((CANDIDATE + 1))
             fi
           done
 
-          NEXT_BUILD_NUMBER=$((LATEST + 1))
-          echo "==> Highest build number seen anywhere: $LATEST"
-          echo "==> Building build number:              $NEXT_BUILD_NUMBER"
+          echo "==> Building build number:                             $NEXT_BUILD_NUMBER"
 
           flutter build ipa --release \
             --build-number="$NEXT_BUILD_NUMBER" \
