@@ -66,12 +66,18 @@ workflows:
           # run just shipped. Reruns cannot break the tie either - they keep
           # recomputing the same number until Apple catches up.
           #
-          # Minutes elapsed since 2025-01-01 is strictly increasing, needs no
-          # remote state, and cannot repeat: an iOS archive takes far longer
-          # than the one minute of resolution. ~850000 today, 6 digits, well
-          # inside what CFBundleVersion accepts. It only ever grows.
+          # Seconds elapsed since 2025-01-01 is strictly increasing, needs no
+          # remote state, and only ever grows. ~50800000 today, 8 digits, well
+          # inside what CFBundleVersion accepts.
+          #
+          # Resolution is seconds, not minutes, on purpose. Minutes looked like
+          # plenty - an archive takes far longer than a minute - but the number
+          # is picked when the run STARTS, so two runs kicked off in the same
+          # minute (a rerun, a double-click, a retried publish) both pick the
+          # same one and the second upload 409s against the first. Seconds makes
+          # that collision window a second wide.
           EPOCH_BASE=1735689600
-          NEXT_BUILD_NUMBER=$(( ($(date -u +%s) - EPOCH_BASE) / 60 ))
+          NEXT_BUILD_NUMBER=$(( $(date -u +%s) - EPOCH_BASE ))
 
           # ASC is still consulted, but only as a floor: if it somehow reports a
           # number at or above ours, step above it rather than fail the upload.
