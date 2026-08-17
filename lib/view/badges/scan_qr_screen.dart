@@ -158,6 +158,9 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
   Future<void> _showExhibitionSelectionDialog(String decodedId) async {
   if (exhibitions.isEmpty) {
     showToast('No exhibitions available');
+    // Nothing will run _processVisitorScan, so release the scanner here or it
+    // stays paused and the screen looks frozen.
+    await _resumeScanner();
     return;
   }
 
@@ -282,6 +285,32 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
   });
 }
 
+  // The camera must be fully stopped while a dialog or another route sits on
+  // top of this screen. On iOS the capture session keeps running behind a
+  // pushed route, so a QR still held in front of the lens is detected a second
+  // time; ScanExhibitor.php answers "already scanned" for that second call and
+  // the handler pops the feedback form the user had just landed on. Android
+  // detaches the camera surface on its own, which is why it never showed.
+  Future<void> _pauseScanner() async {
+    try {
+      await controller.stop();
+    } catch (e) {
+      debugPrint('Failed to stop scanner: $e');
+    }
+  }
+
+  Future<void> _resumeScanner() async {
+    if (!mounted) return;
+    setState(() {
+      isProcessing = false;
+    });
+    try {
+      await controller.start();
+    } catch (e) {
+      debugPrint('Failed to restart scanner: $e');
+    }
+  }
+
   Future<void> _processVisitorScan(
       String decodedId, String exhibitionId) async {
     try {
@@ -316,11 +345,7 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
       // dialog and returns without clearing it. Without this the flag stays
       // true once the user comes back to the scanner, so every later detection
       // is dropped and scanning silently stops working.
-      if (mounted) {
-        setState(() {
-          isProcessing = false;
-        });
-      }
+      await _resumeScanner();
     }
   }
 
@@ -340,15 +365,17 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
       isProcessing = true;
     });
 
+    // Stop the camera for as long as this detection is being handled, so no
+    // second detection of the same QR can reach the API behind our back.
+    await _pauseScanner();
+
     print('-----------------------------response =========================');
     print(code);
 
     // Check if the scanned code is valid JSON
     if (!isValidJsonString(code)) {
       showToast('Invalid QR code');
-      setState(() {
-        isProcessing = false;
-      });
+      await _resumeScanner();
       return;
     }
 
@@ -402,7 +429,9 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
             dynamic exhibitorDetails = await apiValue.getExhibitorDetails(
                 context, teamMemberDetails['exhibitorId']);
             if (exhibitorDetails != null) {
-              Navigator.push<void>(
+              // Awaited so isProcessing stays set until the user comes back
+              // from the feedback form.
+              await Navigator.push<void>(
                 context,
                 MaterialPageRoute<void>(
                   builder: (BuildContext context) => FeedbackForExhibitor(
@@ -440,9 +469,10 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
       Navigator.pop(context);
     }
 
-    setState(() {
-      isProcessing = false;
-    });
+    // Reached by the exhibitor branch once the feedback form is closed, and by
+    // the error paths above. The visitor branch returns early: _processVisitorScan
+    // resumes the scanner in its own finally after the dialog flow completes.
+    await _resumeScanner();
   }
 
   // Function to Show Custom Popup Dialog
