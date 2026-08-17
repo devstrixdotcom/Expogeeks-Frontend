@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:event_pro/data/remote/api_value.dart';
 import 'package:event_pro/utils/color.dart';
 import 'package:event_pro/utils/helper_functions.dart';
+import 'package:event_pro/utils/share_helper.dart';
 import 'package:event_pro/utils/images.dart';
 import 'package:event_pro/models/exhibitor_feedback_from_visitor_model.dart';
 import 'package:event_pro/sharedwidget/appbar__search_field.dart';
@@ -241,17 +242,21 @@ class _ExhibitorFeedbackListScreenState
                               fontWeight: FontWeight.w400)),
                     ],
                   ),
-                  circleButton(image: sendIcon, w: width)
-                  // circleButton(
-                  //   image: sendIcon,
-                  //   w: width,
-                  //   onPress: () {
-                  //     String message = "🎟 Get your tickets here: 👇\n"
-                  //         "🔗 https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
+                  circleButton(
+                    image: sendIcon,
+                    w: width,
+                    onPress: () {
+                      // The feedback model carries no exhibition id, so
+                      // ticketsUrlForShow falls back to the site home rather
+                      // than linking to the wrong show.
+                      String message = "${item.exhibitorName ?? ''}\n"
+                          "Get your tickets here:\n"
+                          "${ticketsUrlForShow(null)}";
 
-                  //     Share.share(message, subject: "Get your tickets here");
-                  //   },
-                  // ),
+                      shareTextFrom(context, message,
+                          subject: item.exhibitorName);
+                    },
+                  ),
                 ],
               ),
             )

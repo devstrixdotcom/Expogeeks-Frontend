@@ -20,21 +20,32 @@ String ticketsUrlForShow(String? exhibitionId) {
 }
 
 /// iOS refuses to open the share sheet unless `sharePositionOrigin` is a
-/// non-empty rect inside the Flutter view (share_plus returns a
-/// "sharePositionOrigin: argument must be set" PlatformException and nothing
-/// is presented). Android ignores the argument, which is why the same call
-/// works there. Always go through these helpers instead of calling
-/// `Share.share` directly.
+/// non-empty rect that lies fully inside the Flutter view. share_plus checks
+/// `CGRectContainsRect(controller.view.frame, origin)` and returns a
+/// "sharePositionOrigin: argument must be set" PlatformException without
+/// presenting anything when it fails — and because UIKit hands out a
+/// popoverPresentationController on iPhone too, that check runs on every
+/// device, not just iPad. Android ignores the argument entirely, which is why
+/// the same call works there. Always go through these helpers instead of
+/// calling `Share.share` directly.
 Rect sharePositionOriginFrom(BuildContext context) {
+  final screenSize = MediaQuery.of(context).size;
+  // Keep a point of margin: the rect has to be *contained*, so one sitting
+  // exactly on the edge is at the mercy of rounding.
+  final safeArea =
+      Rect.fromLTWH(0, 0, screenSize.width, screenSize.height).deflate(1);
+  final fallback = Rect.fromCenter(center: safeArea.center, width: 1, height: 1);
+
   final box = context.findRenderObject() as RenderBox?;
-  if (box != null && box.hasSize) {
-    return box.localToGlobal(Offset.zero) & box.size;
-  }
-  // Fallback: anchor to the middle of the screen so the rect is still
-  // non-empty and inside the view.
-  final size = MediaQuery.of(context).size;
-  return Rect.fromCenter(
-      center: Offset(size.width / 2, size.height / 2), width: 1, height: 1);
+  if (box == null || !box.attached || !box.hasSize) return fallback;
+
+  // A context from an itemBuilder belongs to the row, not the page, and a row
+  // keeps its true coordinates while scrolled out of sight (Flutter builds
+  // past the viewport via cacheExtent). Clamping is what keeps such a rect
+  // from landing outside the view and killing the share sheet on iOS.
+  final rect = (box.localToGlobal(Offset.zero) & box.size).intersect(safeArea);
+  if (rect.isEmpty || !rect.isFinite) return fallback;
+  return rect;
 }
 
 /// Opens the platform share sheet. [context] should belong to the widget the
@@ -42,9 +53,26 @@ Rect sharePositionOriginFrom(BuildContext context) {
 /// it; any widget context on screen works otherwise.
 Future<void> shareTextFrom(BuildContext context, String text,
     {String? subject}) async {
-  await Share.share(
-    text,
-    subject: subject,
-    sharePositionOrigin: sharePositionOriginFrom(context),
-  );
+  final origin = sharePositionOriginFrom(context);
+  try {
+    await Share.share(text, subject: subject, sharePositionOrigin: origin);
+  } catch (e) {
+    // Never let a rejected anchor swallow the share silently: retry from the
+    // centre of the screen, which is always inside the view.
+    debugPrint('Share failed with origin $origin, retrying centred: $e');
+    if (!context.mounted) return;
+    final size = MediaQuery.of(context).size;
+    try {
+      await Share.share(
+        text,
+        subject: subject,
+        sharePositionOrigin: Rect.fromCenter(
+            center: Offset(size.width / 2, size.height / 2),
+            width: 1,
+            height: 1),
+      );
+    } catch (e) {
+      debugPrint('Share failed: $e');
+    }
+  }
 }
