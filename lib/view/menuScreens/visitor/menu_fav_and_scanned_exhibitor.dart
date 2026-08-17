@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:event_pro/data/remote/api_value.dart';
 import 'package:event_pro/utils/color.dart';
@@ -90,7 +88,9 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
       }
 
       dynamic feedBackResponse = await apiValue.getVisitorFeedback(context);
-      if (response != null) {
+      // Guard the feedback response, not the exhibitor one: when the feedback
+      // call fails it returns null, and casting that to List throws.
+      if (feedBackResponse != null) {
         setState(() {
           var tempList = feedBackResponse as List;
           alreadyDoneFeedbackExhibitorList = tempList
@@ -345,8 +345,6 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
       ExhibitorFeedbackFromVisitorModel? feedback,
       int ind) {
     var width = MediaQuery.of(context).size.width;
-    var height = MediaQuery.of(context).size.height;
-    print(isFeedbackGiven);
 
     return GestureDetector(
       onTap: widget.isScannedExhibitor
@@ -476,20 +474,26 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
                               fontWeight: FontWeight.w400)),
                     ],
                   ),
-                  circleButton(
-                      image: sendIcon,
-                      
+                  // The Builder gives the share sheet a context that resolves to
+                  // the button's own RenderBox. Without it the surrounding
+                  // context comes from the ListView itemBuilder, whose render
+                  // object is the sliver — no usable anchor, and iOS then
+                  // refuses to present the sheet.
+                  Builder(
+                    builder: (BuildContext buttonContext) => circleButton(
+                        image: sendIcon,
+                        onPress: () {
+                          // This screen only knows the category, not the show, so
+                          // there is no exhibition id to build a tickets.php link
+                          // from — ticketsUrlForShow falls back to the site home.
+                          String message = "${widget.title}\n"
+                              "Get your tickets here:\n"
+                              "${ticketsUrlForShow(widget.exhibitionId)}";
 
-                      onPress: () {
-                        // This screen only knows the category, not the show, so
-                        // there is no exhibition id to build a tickets.php link
-                        // from — ticketsUrlForShow falls back to the site home.
-                        String message = "${widget.title}\n"
-                            "Get your tickets here:\n"
-                            "${ticketsUrlForShow(widget.exhibitionId)}";
-
-                        shareTextFrom(context, message, subject: widget.title);
-                      }),
+                          shareTextFrom(buttonContext, message,
+                              subject: widget.title);
+                        }),
+                  ),
                 ],
               ),
             )

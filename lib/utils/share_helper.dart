@@ -36,8 +36,14 @@ Rect sharePositionOriginFrom(BuildContext context) {
       Rect.fromLTWH(0, 0, screenSize.width, screenSize.height).deflate(1);
   final fallback = Rect.fromCenter(center: safeArea.center, width: 1, height: 1);
 
-  final box = context.findRenderObject() as RenderBox?;
-  if (box == null || !box.attached || !box.hasSize) return fallback;
+  // Never cast blindly: a context taken from a `ListView.builder`/`.separated`
+  // itemBuilder belongs to the sliver, so its render object is a RenderSliver,
+  // and `as RenderBox` would throw a TypeError before the share is ever
+  // attempted. Fall back to the centre of the screen in that case.
+  final renderObject = context.findRenderObject();
+  if (renderObject is! RenderBox) return fallback;
+  final box = renderObject;
+  if (!box.attached || !box.hasSize) return fallback;
 
   // A context from an itemBuilder belongs to the row, not the page, and a row
   // keeps its true coordinates while scrolled out of sight (Flutter builds
@@ -53,24 +59,28 @@ Rect sharePositionOriginFrom(BuildContext context) {
 /// it; any widget context on screen works otherwise.
 Future<void> shareTextFrom(BuildContext context, String text,
     {String? subject}) async {
-  final origin = sharePositionOriginFrom(context);
+  final size = MediaQuery.of(context).size;
+  final centred = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height / 2), width: 1, height: 1);
+
+  Rect origin;
+  try {
+    origin = sharePositionOriginFrom(context);
+  } catch (e) {
+    // Resolving the anchor must never be what stops a share.
+    debugPrint('Could not resolve share origin, using centre: $e');
+    origin = centred;
+  }
+
   try {
     await Share.share(text, subject: subject, sharePositionOrigin: origin);
   } catch (e) {
     // Never let a rejected anchor swallow the share silently: retry from the
     // centre of the screen, which is always inside the view.
     debugPrint('Share failed with origin $origin, retrying centred: $e');
-    if (!context.mounted) return;
-    final size = MediaQuery.of(context).size;
+    if (origin == centred) return;
     try {
-      await Share.share(
-        text,
-        subject: subject,
-        sharePositionOrigin: Rect.fromCenter(
-            center: Offset(size.width / 2, size.height / 2),
-            width: 1,
-            height: 1),
-      );
+      await Share.share(text, subject: subject, sharePositionOrigin: centred);
     } catch (e) {
       debugPrint('Share failed: $e');
     }
