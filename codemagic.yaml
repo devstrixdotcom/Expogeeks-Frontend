@@ -106,21 +106,42 @@ workflows:
             --build-number="$NEXT_BUILD_NUMBER" \
             --export-options-plist=/Users/builder/export_options.plist
 
-          # Ground truth: read the version back out of the built app rather than
-          # trusting what we passed in, and fail here rather than at upload time
-          # if the archive was stamped with something that will be rejected.
-          APP_PLIST=build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app/Info.plist
-          if [ ! -f "$APP_PLIST" ]; then
-            echo "ERROR: archive Info.plist not found at $APP_PLIST"
+          # Ground truth: read the version back out of the IPA that will actually
+          # be uploaded, and fail here rather than at upload time if it carries a
+          # build number App Store Connect will reject as a duplicate.
+          #
+          # The check deliberately opens the IPA rather than the .xcarchive it
+          # was exported from. Publishing uploads whatever matches the artifact
+          # glob below, so the archive being correctly stamped proves nothing
+          # about the file that leaves the machine - a stale or second IPA in
+          # that directory would sail past an archive-only check and 409.
+          IPA_COUNT=$(ls -1 build/ios/ipa/*.ipa 2>/dev/null | wc -l | tr -d ' ')
+          if [ "$IPA_COUNT" != "1" ]; then
+            echo "ERROR: expected exactly one IPA in build/ios/ipa, found $IPA_COUNT."
+            echo "       Publishing uploads every match, so more than one would push"
+            echo "       an unintended build to TestFlight."
+            ls -la build/ios/ipa/ 2>/dev/null || true
             exit 1
           fi
-          SHORT_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PLIST")
-          BUILT_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PLIST")
-          echo "==> Versions actually stamped into the archive:"
+          IPA=$(ls -1 build/ios/ipa/*.ipa)
+
+          IPA_WORK=$(mktemp -d)
+          unzip -q -o "$IPA" 'Payload/*/Info.plist' -d "$IPA_WORK"
+          IPA_PLIST=$(ls -1 "$IPA_WORK"/Payload/*.app/Info.plist 2>/dev/null | head -1)
+          if [ ! -f "$IPA_PLIST" ]; then
+            echo "ERROR: could not read Payload/*.app/Info.plist out of $IPA"
+            rm -rf "$IPA_WORK"
+            exit 1
+          fi
+          SHORT_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$IPA_PLIST")
+          BUILT_VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$IPA_PLIST")
+          rm -rf "$IPA_WORK"
+
+          echo "==> Versions actually stamped into $(basename "$IPA"):"
           echo "    CFBundleShortVersionString = $SHORT_VERSION"
           echo "    CFBundleVersion            = $BUILT_VERSION"
           if [ "$BUILT_VERSION" != "$NEXT_BUILD_NUMBER" ]; then
-            echo "ERROR: the archive was stamped with build $BUILT_VERSION, not the"
+            echo "ERROR: the IPA was stamped with build $BUILT_VERSION, not the"
             echo "       requested $NEXT_BUILD_NUMBER. Uploading it would collide with"
             echo "       an existing build, so stopping before publish."
             exit 1
