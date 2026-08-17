@@ -15,7 +15,7 @@ import 'package:event_pro/view/home/showDetailTabs/extra_tabs_inShow_details.dar
 import 'package:event_pro/view/home/showDetailTabs/floor_plan_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:event_pro/utils/share_helper.dart';
 import 'package:video_player/video_player.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -47,6 +47,8 @@ class ShowDetails extends StatefulWidget {
 
 class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
   TextStyle whiteTextStyle = TextStyle(height: 1.5, color: white);
+  // Anchors the iOS/iPad share sheet to the share button.
+  final GlobalKey _shareButtonKey = GlobalKey();
   OrganizationItemsDetails? organizationdetails;
   bool isBooked = false;
   List<OrganizerCategoryListModel> organizerCategoryList = [];
@@ -912,15 +914,20 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                                                   10, width),
                                             ),
                                             circleButton(
+                                              key: _shareButtonKey,
                                               image: sendIcon,
                                               w: width,
                                               onPress: () {
                                                 String message =
                                                     "${widget.titleName}\n"
                                                     "Get your tickets here:\n"
-                                                    "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
+                                                    "${ticketsUrlForShow(widget.organizationId)}";
 
-                                                Share.share(message,
+                                                shareTextFrom(
+                                                    _shareButtonKey
+                                                            .currentContext ??
+                                                        context,
+                                                    message,
                                                     subject: widget.titleName);
                                               },
                                             ),
@@ -1789,10 +1796,11 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
     );
   }
 
-  circleButton({image, onPress, w}) {
+  circleButton({image, onPress, w, Key? key}) {
     return GestureDetector(
       onTap: onPress,
       child: Container(
+        key: key,
         height: convertFigmaToUIWidth(34, w),
         width: convertFigmaToUIWidth(34, w),
         padding: EdgeInsets.all(convertFigmaToUIWidth(6, w) ?? 6),

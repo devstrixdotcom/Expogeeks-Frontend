@@ -339,8 +339,7 @@ class _VisitorBadgeScreenState extends State<VisitorBadgeScreen>
                                           // buyer of 2 sees their own name on
                                           // one and the co-visitor they entered
                                           // at purchase on the other, and knows
-                                          // which QR to hand to whom. '(You)'
-                                          // marks the viewer's own ticket.
+                                          // which QR to hand to whom.
                                           if ((ticket['ticketHolder']
                                                       ?.toString() ??
                                                   '')
@@ -349,11 +348,7 @@ class _VisitorBadgeScreenState extends State<VisitorBadgeScreen>
                                                 height: convertFigmaToUIWidth(
                                                     5, width)),
                                             Text(
-                                              ticket['ticketHolderIsSelf']
-                                                          ?.toString() ==
-                                                      '1'
-                                                  ? 'For ${ticket['ticketHolder']} (You)'
-                                                  : 'For ${ticket['ticketHolder']}',
+                                              'For ${ticket['ticketHolder']}',
                                               style: TextStyle(
                                                 fontSize: convertFigmaToUIWidth(
                                                     13, width),

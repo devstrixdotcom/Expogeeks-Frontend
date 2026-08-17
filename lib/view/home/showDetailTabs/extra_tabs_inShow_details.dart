@@ -13,7 +13,7 @@
 // import 'package:event_pro/sharedwidget/reminder_alert_box.dart';
 // import 'package:flutter/material.dart';
 // import 'package:intl/intl.dart';
-// import 'package:share_plus/share_plus.dart';
+// import 'package:event_pro/utils/share_helper.dart';
 // import 'package:url_launcher/url_launcher.dart';
 // import 'package:video_player/video_player.dart';
 
@@ -449,7 +449,7 @@
 //                                 base64Encode(utf8.encode(widget.categoryId));
 //                             String message =
 //                                 "${widget.titleName}\nGet your tickets here:\nhttps://www.expogeeks.co.uk/tickets.php?organizerId=$organizerId";
-//                             Share.share(message, subject: widget.titleName);
+//                             shareTextFrom(context, message, subject: widget.titleName);
 //                           },
 //                         ),
 //                         SizedBox(width: convertFigmaToUIWidth(10, width)),
@@ -759,7 +759,7 @@ import 'package:event_pro/utils/basic_route.dart';
 import 'package:event_pro/sharedwidget/reminder_alert_box.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:event_pro/utils/share_helper.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
@@ -1188,11 +1188,9 @@ class _ExtraTabsInShowsDetailsState extends State<ExtraTabsInShowsDetails> {
                         circleButton(
                           image: sendIcon,
                           onPress: () {
-                            String organizerId =
-                                base64Encode(utf8.encode(widget.categoryId));
                             String message =
-                                "${widget.titleName}\nGet your tickets here:\nhttps://www.expogeeks.co.uk/tickets.php?organizerId=$organizerId";
-                            Share.share(message, subject: widget.titleName);
+                                "${widget.titleName}\nGet your tickets here:\n${ticketsUrlForShow(widget.organizationId)}";
+                            shareTextFrom(context, message, subject: widget.titleName);
                           },
                         ),
                         SizedBox(width: convertFigmaToUIWidth(10, width)),
@@ -1413,17 +1411,27 @@ class _ExtraTabsInShowsDetailsState extends State<ExtraTabsInShowsDetails> {
                                         }
                                       },
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            'Tickets Available: ${categoryList[i].seatsLeft}',
-                                            style: TextStyle(
-                                              height: 1.5,
-                                              fontSize: convertFigmaToUIWidth(10, width),
-                                              fontWeight: FontWeight.w600,
-                                              color: brownText,
+                                          // Expanded rather than spaceBetween: the
+                                          // label is wider on iOS (San Francisco vs
+                                          // Roboto), and an unconstrained Text in a
+                                          // Row overflows instead of wrapping, so it
+                                          // ran underneath the Booked/Book Now pill.
+                                          Expanded(
+                                            child: Text(
+                                              'Tickets Available: ${categoryList[i].seatsLeft}',
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                height: 1.5,
+                                                fontSize: convertFigmaToUIWidth(10, width),
+                                                fontWeight: FontWeight.w600,
+                                                color: brownText,
+                                              ),
                                             ),
                                           ),
+                                          SizedBox(
+                                              width: convertFigmaToUIWidth(10, width)),
                                           Container(
                                             width: convertFigmaToUIWidth(80, width),
                                             height: convertFigmaToUIWidth(30, width),

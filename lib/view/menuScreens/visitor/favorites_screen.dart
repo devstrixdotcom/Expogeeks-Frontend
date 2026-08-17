@@ -159,6 +159,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                 categoryId: favCategoryListItem.id ?? '',
                                 showDate: '',
                                 isAfterScanExhibitortorId: '',
+                                exhibitionId:
+                                    favCategoryListItem.exhibitionId,
                               )));
                 },
                 child: Container(

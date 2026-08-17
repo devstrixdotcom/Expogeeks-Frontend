@@ -5,6 +5,10 @@ class FavCategoryListModel {
   String? categoryName;
   String? imageLink;
   String? videoLink;
+
+  /// Show this category belongs to, used to build the shared ticket link.
+  String? exhibitionId;
+  String? exhibitionName;
   List<ExhibitorDetailsModel>? exhibitors;
 
   FavCategoryListModel({
@@ -12,6 +16,8 @@ class FavCategoryListModel {
     this.categoryName,
     this.imageLink,
     this.videoLink,
+    this.exhibitionId,
+    this.exhibitionName,
     this.exhibitors,
   });
 
@@ -20,6 +26,8 @@ class FavCategoryListModel {
     categoryName = json['categoryName'];
     imageLink = json['imageLink'];
     videoLink = json['videoLink'];
+    exhibitionId = json['exhibitionId']?.toString();
+    exhibitionName = json['exhibitionName'];
     if (json['exhibitors'] != null) {
       exhibitors = (json['exhibitors'] as List<dynamic>)
           .map((e) => ExhibitorDetailsModel.fromJson(e as Map<String, dynamic>))
@@ -35,6 +43,8 @@ class FavCategoryListModel {
     data['categoryName'] = this.categoryName;
     data['imageLink'] = this.imageLink;
     data['videoLink'] = this.videoLink;
+    data['exhibitionId'] = this.exhibitionId;
+    data['exhibitionName'] = this.exhibitionName;
     if (exhibitors != null) {
       data['exhibitors'] = exhibitors!.map((e) => e.toJson()).toList();
     }

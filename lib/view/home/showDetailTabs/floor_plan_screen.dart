@@ -450,6 +450,8 @@ class _FloorPlanScreenState extends State<FloorPlanScreen> {
                                                             '',
                                                     // showDate: widget.showDate,
                                                     isBooked: widget.isBooked,
+                                                    exhibitionId:
+                                                        widget.organizationId,
                                                   ),
                                                 ),
                                               );
@@ -638,6 +640,8 @@ class _FloorPlanScreenState extends State<FloorPlanScreen> {
                                                                     '',
                                                             isBooked:
                                                                 widget.isBooked,
+                                                            exhibitionId: widget
+                                                                .organizationId,
                                                           ),
                                                         ),
                                                       );

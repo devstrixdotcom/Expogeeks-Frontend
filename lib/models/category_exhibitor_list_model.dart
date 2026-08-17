@@ -10,6 +10,9 @@ class CategoryExhibitorListModel {
   String? circularImageLink;
   String? exhibitionName;
 
+  /// Show this exhibitor stands at, used to build the shared ticket link.
+  String? exhibitionId;
+
   CategoryExhibitorListModel({
     this.id,
     this.exhibitorId,
@@ -21,6 +24,7 @@ class CategoryExhibitorListModel {
     this.instagramLink,
     this.circularImageLink,
     this.exhibitionName,
+    this.exhibitionId,
   });
 
   CategoryExhibitorListModel.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,9 @@ class CategoryExhibitorListModel {
     }
     if (json.containsKey('exhibitionName')) {
       exhibitionName = json['exhibitionName'];
+    }
+    if (json.containsKey('exhibitionId')) {
+      exhibitionId = json['exhibitionId']?.toString();
     }
   }
 

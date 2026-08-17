@@ -284,31 +284,43 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
 
   Future<void> _processVisitorScan(
       String decodedId, String exhibitionId) async {
-    dynamic response = await apiValue.scanVisitor(
-      context,
-      decodedId,
-      exhibitionId,
-    );
-    if (response != null) {
-      if (response['status'] == 'false') {
-        Navigator.of(context).pop();
-        showCustomDialog(context, response['message']);
-        // return manage navigation
-        return;
-      }
-      Navigator.push<void>(
+    try {
+      dynamic response = await apiValue.scanVisitor(
         context,
-        MaterialPageRoute<void>(
-          builder: (BuildContext context) => ScaneedVistors(
-            isAfterScan: true,
-            isAfterScanVisitorId: decodedId,
-            exhibitionId: exhibitionId,
-          ),
-        ),
+        decodedId,
+        exhibitionId,
       );
-    } else {
-      debugPrint('ELSE Invalid QR code');
-      Navigator.pop(context);
+      if (response != null) {
+        if (response['status'] == 'false') {
+          Navigator.of(context).pop();
+          showCustomDialog(context, response['message']);
+          // return manage navigation
+          return;
+        }
+        await Navigator.push<void>(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => ScaneedVistors(
+              isAfterScan: true,
+              isAfterScanVisitorId: decodedId,
+              exhibitionId: exhibitionId,
+            ),
+          ),
+        );
+      } else {
+        debugPrint('ELSE Invalid QR code');
+        Navigator.pop(context);
+      }
+    } finally {
+      // _onBarcodeDetected sets isProcessing before opening the exhibition
+      // dialog and returns without clearing it. Without this the flag stays
+      // true once the user comes back to the scanner, so every later detection
+      // is dropped and scanning silently stops working.
+      if (mounted) {
+        setState(() {
+          isProcessing = false;
+        });
+      }
     }
   }
 

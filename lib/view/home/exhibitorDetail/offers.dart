@@ -8,7 +8,7 @@ import 'package:event_pro/view/base_screen.dart';
 import 'package:event_pro/utils/basic_route.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:event_pro/utils/share_helper.dart';
 
 import '../../../utils/helper_functions.dart';
 
@@ -17,7 +17,16 @@ class OffersScreen extends StatefulWidget {
   String exhibitorId;
   String? titleName;
   String? exhibitorName;
-  OffersScreen({super.key, required this.exhibitorId, this.titleName, this.exhibitorName});
+
+  /// Exhibition (show) id used to build the shared ticket link; see
+  /// [ExhibitorDetailsScreen.exhibitionId].
+  String? exhibitionId;
+  OffersScreen(
+      {super.key,
+      required this.exhibitorId,
+      this.titleName,
+      this.exhibitorName,
+      this.exhibitionId});
 
   @override
   State<OffersScreen> createState() => _OffersScreenState();
@@ -180,9 +189,9 @@ class _OffersScreenState extends State<OffersScreen> {
                       onPress: () {
                         String message = "*To Get Offer Visit ${widget.exhibitorName} at ${widget.titleName}*\n"
                             "Get your tickets here:\n"
-                            "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
+                            "${ticketsUrlForShow(widget.exhibitionId)}";
 
-                        Share.share(message,
+                        shareTextFrom(context, message,
                             subject: offersListItem.description);
                       },
                     ),

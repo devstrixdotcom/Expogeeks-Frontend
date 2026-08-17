@@ -99,6 +99,7 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
                       showDate: '',
                       isAfterScanExhibitortorId:
                           widget.isAfterScanExhibitortorId,
+                      exhibitionId: scannedCategoryList[0].exhibitionId,
                     )));
       }
     } else {
@@ -211,6 +212,8 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
                                   showDate: '',
                                   isAfterScanExhibitortorId:
                                       widget.isAfterScanExhibitortorId,
+                                  exhibitionId:
+                                      scannedCategoryListItem.exhibitionId,
                                 )));
                   },
                   child: Container(

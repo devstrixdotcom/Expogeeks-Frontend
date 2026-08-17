@@ -14,7 +14,7 @@ import 'package:event_pro/view/home/exhibitorDetail/exhibitor_details.dart';
 import 'package:event_pro/view/feedback/VisitorFlow/exhibitor_feedback_details.dart';
 import 'package:event_pro/view/feedback/VisitorFlow/feedback_for_exhibitor.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:event_pro/utils/share_helper.dart';
 
 // ignore: must_be_immutable
 class CategoriesItemsListScreen extends StatefulWidget {
@@ -25,6 +25,10 @@ class CategoriesItemsListScreen extends StatefulWidget {
   String categoryId;
   String showDate;
 
+  /// Show the category belongs to, returned by GetFavouriteCategoryList.php /
+  /// GetScannedCategoryList.php. Used to build the shared ticket link.
+  String? exhibitionId;
+
   CategoriesItemsListScreen({
     super.key,
     required this.isFromScan,
@@ -33,6 +37,7 @@ class CategoriesItemsListScreen extends StatefulWidget {
     required this.categoryId,
     required this.showDate,
     required this.isAfterScanExhibitortorId,
+    this.exhibitionId,
   });
 
   @override
@@ -386,6 +391,8 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
                     exhibitorId: item.id ?? '1',
                     // showDate: widget.showDate, // here
                     isBooked: false,
+                    showName: item.exhibitionName,
+                    exhibitionId: item.exhibitionId ?? widget.exhibitionId,
                   ),
                 ),
               );
@@ -474,13 +481,14 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
                       
 
                       onPress: () {
-                        String organizerId =
-                            base64Encode(utf8.encode(widget.categoryId));
+                        // This screen only knows the category, not the show, so
+                        // there is no exhibition id to build a tickets.php link
+                        // from — ticketsUrlForShow falls back to the site home.
                         String message = "${widget.title}\n"
                             "Get your tickets here:\n"
-                            "https://www.expogeeks.co.uk/tickets.php?organizerId=$organizerId";
+                            "${ticketsUrlForShow(widget.exhibitionId)}";
 
-                        Share.share(message, subject: widget.title);
+                        shareTextFrom(context, message, subject: widget.title);
                       }),
                 ],
               ),

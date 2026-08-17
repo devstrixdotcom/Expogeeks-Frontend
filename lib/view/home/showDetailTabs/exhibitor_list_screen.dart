@@ -10,7 +10,7 @@ import 'package:event_pro/view/base_screen.dart';
 import 'package:event_pro/utils/basic_route.dart';
 import 'package:event_pro/view/home/exhibitorDetail/exhibitor_details.dart';
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:event_pro/utils/share_helper.dart';
 
 // ignore: must_be_immutable
 class ExhibitorListingScreen extends StatefulWidget {
@@ -170,6 +170,7 @@ class _ExhibitorListingScreenState extends State<ExhibitorListingScreen> {
                   titleName: listValue[i].name ?? '',
                   isBooked: widget.isBooked,
                   showName: widget.showName,
+                  exhibitionId: widget.organizationId,
                 ),
               ),
             );
@@ -338,9 +339,9 @@ class _ExhibitorListingScreenState extends State<ExhibitorListingScreen> {
                                   "listValue name: ${listValue[i].name ?? ''}");
                               String message =
                                   "Visit ${listValue[i].name ?? ''} at ${widget.showName}:\n"
-                                  "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
+                                  "${ticketsUrlForShow(widget.organizationId)}";
 
-                              Share.share(message, subject: listValue[i].name);
+                              shareTextFrom(context, message, subject: listValue[i].name);
                             },
                           ),
                         ],

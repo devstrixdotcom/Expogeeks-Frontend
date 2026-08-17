@@ -19,7 +19,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:event_pro/utils/share_helper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sn_progress_dialog/sn_progress_dialog.dart';
 import 'package:video_player/video_player.dart';
@@ -34,12 +34,19 @@ class ExhibitorDetailsScreen extends StatefulWidget {
   bool isBooked;
   String? showName;
 
+  /// Exhibition (show) id this exhibitor was opened from, used to build the
+  /// shared ticket link. Null/empty when the caller doesn't know the show
+  /// (e.g. the favourites list), in which case the share falls back to the
+  /// site home.
+  String? exhibitionId;
+
   ExhibitorDetailsScreen({
     super.key,
     required this.isBooked,
     required this.titleName,
     required this.exhibitorId,
     this.showName,
+    this.exhibitionId,
   });
 
   @override
@@ -764,9 +771,9 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                       // "*${widget.titleName}*\n"
                                                       // "🎟 Get your tickets here: 👇\n "
                                                       "Visit ${widget.titleName} at ${widget.showName}:\n"
-                                                      "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
+                                                      "${ticketsUrlForShow(widget.exhibitionId)}";
 
-                                                  Share.share(message,
+                                                  shareTextFrom(context, message,
                                                       subject: exhibitorDetails!
                                                           .name);
                                                 },
@@ -914,7 +921,8 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                                         widget
                                                                             .exhibitorId,
                                                                             titleName: widget.showName,
-                                                                            exhibitorName: widget.titleName,)));
+                                                                            exhibitorName: widget.titleName,
+                                                                            exhibitionId: widget.exhibitionId,)));
                                                   } else if (value ==
                                                       "catalogue") {
                                                     // downloadCatalogAndNotify(
@@ -935,9 +943,9 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                       // "*${widget.titleName}*\n"
                                                       // "🎟 Get your tickets here: 👇\n "
                                                       "Visit ${widget.titleName} at ${widget.showName}:\n"
-                                                      "https://www.expogeeks.co.uk/tickets.php?organizerId=Mg==";
+                                                      "${ticketsUrlForShow(widget.exhibitionId)}";
 
-                                                  Share.share(message,
+                                                  shareTextFrom(context, message,
                                                       subject: exhibitorDetails!
                                                           .name);
 
