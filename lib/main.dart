@@ -70,6 +70,11 @@ Future<void> _initializePrefs() async {
   constant.weddingRoleValue = SharedPreferencesHelper.getUserWeddingRole();
   constant.addressValue = SharedPreferencesHelper.getUserAddress();
   constant.budgetValue = SharedPreferencesHelper.getUserBudget();
+  // Destination and venue are cached like every other profile field; without
+  // these two lines they stay empty on a cold start until getUserDetails()
+  // returns, so their profile rows and edit boxes come up blank.
+  constant.destinationValue = SharedPreferencesHelper.getDestination();
+  constant.venueValue = SharedPreferencesHelper.getVenue();
   constant.expectedDateValue = SharedPreferencesHelper.getExpectedDate();
   constant.qrCodeValue = SharedPreferencesHelper.getQrCode();
   constant.imageLinkValue = SharedPreferencesHelper.getImageLink();

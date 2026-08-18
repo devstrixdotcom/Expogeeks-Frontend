@@ -1267,8 +1267,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   Future<void> initPref() async {
     await GetUserData().getUserDetails();
+    // initializeControllers() ran in initState against whatever was cached
+    // before this refresh landed, so every controller has to be re-seeded here
+    // - not just the venue one. Otherwise opening e.g. the Address or Wedding
+    // Destination dialog shows a stale (often empty) box, and saving it writes
+    // that stale value back over the real one.
     setState(() {
-      _venueController.text = constant.venueValue;
+      initializeControllers();
       isLoading = false;
     });
   }
@@ -2132,7 +2137,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             },
           ),
         if (constant.userType != constant.exhibitorUser &&
-            constant.destinationValue != '')
+            constant.venueValue != '')
           _buildTabContainer(
             'Venue',
             '',
