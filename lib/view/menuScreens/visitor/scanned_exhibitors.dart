@@ -185,12 +185,13 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
           shrinkWrap: true,
           padding: EdgeInsets.all(20),
           // Taller than the old fixed 150: the tile now carries the show name
-          // under the category, and either label can run to two lines.
+          // under the category, and the category can run to two lines. Scaled
+          // rather than a raw constant so it tracks the circle above it.
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               crossAxisSpacing: 25,
               mainAxisSpacing: 20,
-              mainAxisExtent: convertFigmaToUIWidth(190, w) ?? 190),
+              mainAxisExtent: convertFigmaToUIWidth(175, w) ?? 175),
           itemCount:
               _isSearching ? searchResult.length : scannedCategoryList.length,
           itemBuilder: (BuildContext context, int index) {
@@ -247,22 +248,31 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
+                      height: 1.2,
                       fontSize: convertFigmaToUIWidth(12, w),
-                      fontWeight: FontWeight.w400),
+                      color: textColor,
+                      fontWeight: FontWeight.w600),
                 ),
                 // The show the category belongs to. Without it a visitor who
                 // has scanned at more than one show cannot tell two identically
-                // named categories apart.
+                // named categories apart. Kept as a quiet caption under the
+                // category, so the tile still reads category-first.
                 if ((scannedCategoryListItem.exhibitionName ?? '').isNotEmpty)
-                  Text(
-                    scannedCategoryListItem.exhibitionName ?? '',
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: convertFigmaToUIWidth(10, w),
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w400),
+                  Padding(
+                    padding: EdgeInsets.only(
+                        top: convertFigmaToUIWidth(3, w) ?? 3),
+                    child: Text(
+                      scannedCategoryListItem.exhibitionName ?? '',
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          height: 1.2,
+                          fontSize: convertFigmaToUIWidth(10, w),
+                          letterSpacing: 0.2,
+                          color: cyangreen,
+                          fontWeight: FontWeight.w500),
+                    ),
                   ),
               ],
             );

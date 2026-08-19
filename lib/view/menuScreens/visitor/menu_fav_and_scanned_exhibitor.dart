@@ -479,29 +479,47 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
                                 fontWeight: FontWeight.w400)),
                         // Which show this exhibitor was scanned at - the card
                         // named the category only, so a visitor with several
-                        // shows could not tell them apart.
-                        if ((item.exhibitionName ?? '').isNotEmpty)
-                          Row(
-                            children: [
-                              Icon(Icons.storefront_outlined,
-                                  size: convertFigmaToUIWidth(12, width),
-                                  color: Color.fromRGBO(100, 76, 76, 0.7)),
-                              SizedBox(
-                                  width: convertFigmaToUIWidth(4, width) ?? 4),
-                              Flexible(
-                                child: Text(item.exhibitionName ?? '',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        height: 1.5,
-                                        fontSize:
-                                            convertFigmaToUIWidth(11, width),
-                                        color:
-                                            Color.fromRGBO(100, 76, 76, 0.7),
-                                        fontWeight: FontWeight.w400)),
-                              ),
-                            ],
+                        // shows could not tell them apart. It reads as a chip
+                        // rather than a third line of text, so the booth name
+                        // and category keep their place in the hierarchy.
+                        if ((item.exhibitionName ?? '').isNotEmpty) ...[
+                          SizedBox(
+                              height: convertFigmaToUIWidth(8, width) ?? 8),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal:
+                                  convertFigmaToUIWidth(10, width) ?? 10,
+                              vertical: convertFigmaToUIWidth(5, width) ?? 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: white,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.event_outlined,
+                                    size: convertFigmaToUIWidth(12, width),
+                                    color: cyangreen),
+                                SizedBox(
+                                    width:
+                                        convertFigmaToUIWidth(5, width) ?? 5),
+                                Flexible(
+                                  child: Text(item.exhibitionName ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          height: 1.1,
+                                          fontSize:
+                                              convertFigmaToUIWidth(11, width),
+                                          letterSpacing: 0.2,
+                                          color: cyangreen,
+                                          fontWeight: FontWeight.w600)),
+                                ),
+                              ],
+                            ),
                           ),
+                        ],
                       ],
                     ),
                   ),
