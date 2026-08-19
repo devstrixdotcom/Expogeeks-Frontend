@@ -1642,13 +1642,14 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
               ),
 
               // --- Ticket Section (NO divider) ---
-              // a day that has passed just fades out - no label, no strike
-              // through; the ticket action belongs to visitors on live days only
-              if (!isExpired && constant.userType == constant.visitorUser)
+              // The ticket icon stays on every row so a past day keeps the same
+              // shape as a live one - it is just faded, like the rest of the
+              // row. Tapping it still reports the date as expired.
+              if (constant.userType == constant.visitorUser)
                 Row(
                   children: [
                     SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                    ticketIcon,
+                    Opacity(opacity: isExpired ? 0.5 : 1.0, child: ticketIcon),
                   ],
                 ),
             ],
@@ -1746,15 +1747,15 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
               ),
 
               // --- Ticket Section (NO divider) ---
-              // a booking whose day has passed just fades out - no label, no
-              // strike through
-              if (!isOver && showTicket)
+              // The ticket icon stays on a past booking too, greyed out with
+              // the rest of the row rather than dropped.
+              if (showTicket)
                 Row(
                   children: [
                     SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
                     Image.asset(
                       ticketIcon,
-                      color: bookingAccent,
+                      color: isOver ? contentColor : bookingAccent,
                       width: convertFigmaToUIWidth(30, width),
                       height: convertFigmaToUIWidth(30, width),
                     ),
