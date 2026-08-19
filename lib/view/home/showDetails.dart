@@ -1041,8 +1041,6 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                                                             convertFigmaToUIWidth(
                                                                 30, width),
                                                       ),
-                                                      arrowForwardIcon:
-                                                          Icons.arrow_forward,
                                                       redirectLink:
                                                           dateTimeList[index]
                                                               .redirectLink
@@ -1549,7 +1547,6 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
     required IconData timeIcon,
     required String timeText,
     required Widget ticketIcon,
-    required IconData arrowForwardIcon,
     required String redirectLink,
   }) {
     double width = MediaQuery.of(context).size.width;
@@ -1647,7 +1644,7 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                 ],
               ),
 
-              // --- Ticket & Arrow Section (NO divider) ---
+              // --- Ticket Section (NO divider) ---
               // a day that has passed carries the plain "Over" label for every
               // user type; the ticket action belongs to visitors on live days only
               if (isExpired)
@@ -1668,10 +1665,6 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                   children: [
                     SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
                     ticketIcon,
-                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                    Icon(arrowForwardIcon,
-                        color: Colors.white,
-                        size: convertFigmaToUIWidth(20, width)),
                   ],
                 ),
             ],
