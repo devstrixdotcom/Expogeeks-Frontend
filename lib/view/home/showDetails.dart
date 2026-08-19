@@ -1748,8 +1748,11 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
 
               // --- Ticket Section (NO divider) ---
               // The ticket icon stays on a past booking too, greyed out with
-              // the rest of the row rather than dropped.
-              if (showTicket)
+              // the rest of the row rather than dropped. On an over row it is
+              // shown even when showTicket is false - that flag withholds the
+              // ticket *action* from exhibitors, and a past row offers no
+              // action to anyone, so the icon is there purely for shape.
+              if (showTicket || isOver)
                 Row(
                   children: [
                     SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
