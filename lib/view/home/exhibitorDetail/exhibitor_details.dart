@@ -1212,7 +1212,14 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                                 borderRadius:
                                                     BorderRadius.circular(30)),
                                             child: Text(
-                                              "Request Meeting",
+                                              // Once this visitor already has a
+                                              // meeting with the booth, the
+                                              // button is offering a second one
+                                              (exhibitorDetails!.meetingList
+                                                          ?.isNotEmpty ??
+                                                      false)
+                                                  ? "Request Another Meeting"
+                                                  : "Request Meeting",
                                               style: TextStyle(
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.w500,
