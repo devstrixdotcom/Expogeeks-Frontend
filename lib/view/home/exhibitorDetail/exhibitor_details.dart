@@ -1132,7 +1132,7 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                               style: TextStyle(
                                                 height: 1.5,
                                                 fontSize: convertFigmaToUIWidth(
-                                                    12, width),
+                                                    14, width),
                                                 color: Colors.white
                                                     .withOpacity(0.9),
                                                 fontWeight: FontWeight.w600,
@@ -1144,7 +1144,7 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                               style: TextStyle(
                                                 height: 1.5,
                                                 fontSize: convertFigmaToUIWidth(
-                                                    12, width),
+                                                    14, width),
                                                 color: Colors.white
                                                     .withOpacity(0.9),
                                                 fontWeight: FontWeight.w600,
