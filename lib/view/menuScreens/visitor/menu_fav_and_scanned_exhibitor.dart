@@ -457,22 +457,53 @@ class _CategoriesItemsListScreenState extends State<CategoriesItemsListScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item.name ?? '-',
-                          style: TextStyle(
-                              height: 1.5,
-                              fontSize: convertFigmaToUIWidth(14, width),
-                              color: Color.fromRGBO(100, 76, 76, 1),
-                              fontWeight: FontWeight.w600)),
-                      Text(widget.title,
-                          style: TextStyle(
-                              height: 1.5,
-                              fontSize: convertFigmaToUIWidth(12, width),
-                              color: Color.fromRGBO(100, 76, 76, 1),
-                              fontWeight: FontWeight.w400)),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name ?? '-',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                height: 1.5,
+                                fontSize: convertFigmaToUIWidth(14, width),
+                                color: Color.fromRGBO(100, 76, 76, 1),
+                                fontWeight: FontWeight.w600)),
+                        Text(widget.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                height: 1.5,
+                                fontSize: convertFigmaToUIWidth(12, width),
+                                color: Color.fromRGBO(100, 76, 76, 1),
+                                fontWeight: FontWeight.w400)),
+                        // Which show this exhibitor was scanned at - the card
+                        // named the category only, so a visitor with several
+                        // shows could not tell them apart.
+                        if ((item.exhibitionName ?? '').isNotEmpty)
+                          Row(
+                            children: [
+                              Icon(Icons.storefront_outlined,
+                                  size: convertFigmaToUIWidth(12, width),
+                                  color: Color.fromRGBO(100, 76, 76, 0.7)),
+                              SizedBox(
+                                  width: convertFigmaToUIWidth(4, width) ?? 4),
+                              Flexible(
+                                child: Text(item.exhibitionName ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        height: 1.5,
+                                        fontSize:
+                                            convertFigmaToUIWidth(11, width),
+                                        color:
+                                            Color.fromRGBO(100, 76, 76, 0.7),
+                                        fontWeight: FontWeight.w400)),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
                   // The Builder gives the share sheet a context that resolves to
                   // the button's own RenderBox. Without it the surrounding

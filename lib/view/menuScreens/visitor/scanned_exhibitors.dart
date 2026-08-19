@@ -184,11 +184,13 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
         child: GridView.builder(
           shrinkWrap: true,
           padding: EdgeInsets.all(20),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          // Taller than the old fixed 150: the tile now carries the show name
+          // under the category, and either label can run to two lines.
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
               crossAxisSpacing: 25,
               mainAxisSpacing: 20,
-              mainAxisExtent: 150),
+              mainAxisExtent: convertFigmaToUIWidth(190, w) ?? 190),
           itemCount:
               _isSearching ? searchResult.length : scannedCategoryList.length,
           itemBuilder: (BuildContext context, int index) {
@@ -242,10 +244,26 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
                 Text(
                   scannedCategoryListItem.categoryName ?? '',
                   textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       fontSize: convertFigmaToUIWidth(12, w),
                       fontWeight: FontWeight.w400),
-                )
+                ),
+                // The show the category belongs to. Without it a visitor who
+                // has scanned at more than one show cannot tell two identically
+                // named categories apart.
+                if ((scannedCategoryListItem.exhibitionName ?? '').isNotEmpty)
+                  Text(
+                    scannedCategoryListItem.exhibitionName ?? '',
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                        fontSize: convertFigmaToUIWidth(10, w),
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w400),
+                  ),
               ],
             );
           },
