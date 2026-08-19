@@ -106,6 +106,15 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
         .isBefore(DateTime(now.year, now.month, now.day));
   }
 
+  // The API sends show dates as 'Wed 04 Oct 2026', while the booked dates come
+  // through as plain '2026-10-04' and render as '4th Oct 2026'. Drop the
+  // leading weekday so the show-date rows read the same as the booking rows.
+  String withoutWeekday(String date) {
+    final parts = date.trim().split(RegExp(r'\s+'));
+    if (parts.length == 4) parts.removeAt(0);
+    return parts.join(' ');
+  }
+
   @override
   void setState(fn) {
     if (mounted) {
@@ -1013,10 +1022,11 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                                                           .calendar_month_outlined,
                                                       dateText: DateFormatter
                                                           .formatDayWithSuffix(
-                                                              dateTimeList[
-                                                                      index]
-                                                                  .showDate
-                                                                  .toString()),
+                                                              withoutWeekday(
+                                                                  dateTimeList[
+                                                                          index]
+                                                                      .showDate
+                                                                      .toString())),
                                                       timeIcon:
                                                           Icons.access_time,
                                                       timeText:
@@ -1059,7 +1069,14 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                               SizedBox(
                                   height: convertFigmaToUIWidth(24, width)),
                               Container(
-                                height: convertFigmaToUIWidth(118, width),
+                                // minHeight, not a fixed height: a two-line
+                                // category label (or a larger iOS text size)
+                                // needs a few more pixels than the 118 the
+                                // design assumes, and a fixed height overflows
+                                constraints: BoxConstraints(
+                                    minHeight:
+                                        convertFigmaToUIWidth(118, width) ??
+                                            118),
                                 alignment: Alignment.center,
                                 child: SingleChildScrollView(
                                   scrollDirection: Axis.horizontal,
@@ -1581,28 +1598,33 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // --- Date Section ---
-              Row(
-                children: [
-                  Icon(dateIcon,
-                      color: contentColor,
-                      size: convertFigmaToUIWidth(20, width)),
-                  SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: convertFigmaToUIWidth(150, width) ?? 150),
-                    child: Text(
-                      dateText,
-                      overflow: TextOverflow.ellipsis,
-                      style: whiteTextStyle.copyWith(
-                        fontSize: convertFigmaToUIWidth(14, width),
+              // Flexible, not a fixed maxWidth: the date and time together can
+              // outgrow the row on a narrow device or a larger iOS text size,
+              // and they should shrink and ellipsize rather than overflow
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(dateIcon,
                         color: contentColor,
-                        decoration:
-                            isExpired ? TextDecoration.lineThrough : null,
-                        decorationColor: contentColor,
+                        size: convertFigmaToUIWidth(20, width)),
+                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
+                    Flexible(
+                      child: Text(
+                        dateText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: whiteTextStyle.copyWith(
+                          fontSize: convertFigmaToUIWidth(14, width),
+                          color: contentColor,
+                          decoration:
+                              isExpired ? TextDecoration.lineThrough : null,
+                          decorationColor: contentColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // --- Vertical Divider ---
@@ -1616,25 +1638,27 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
               ),
 
               // --- Time Section ---
-              Row(
-                children: [
-                  Icon(timeIcon,
-                      color: contentColor,
-                      size: convertFigmaToUIWidth(20, width)),
-                  SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: convertFigmaToUIWidth(150, width) ?? 150),
-                    child: Text(
-                      timeText,
-                      overflow: TextOverflow.ellipsis,
-                      style: whiteTextStyle.copyWith(
-                        fontSize: convertFigmaToUIWidth(14, width),
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(timeIcon,
                         color: contentColor,
+                        size: convertFigmaToUIWidth(20, width)),
+                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
+                    Flexible(
+                      child: Text(
+                        timeText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: whiteTextStyle.copyWith(
+                          fontSize: convertFigmaToUIWidth(14, width),
+                          color: contentColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // --- Ticket & Arrow Section (NO divider) ---
@@ -1703,29 +1727,33 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // --- Date Section ---
-              Row(
-                children: [
-                  Icon(Icons.calendar_month_outlined,
-                      color: contentColor,
-                      size: convertFigmaToUIWidth(20, width)),
-                  SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: convertFigmaToUIWidth(150, width) ?? 150),
-                    child: Text(
-                      dateText,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: convertFigmaToUIWidth(14, width),
-                        fontWeight: FontWeight.w400,
+              // Flexible for the same reason as the show-date row above: shrink
+              // and ellipsize instead of overflowing the card
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.calendar_month_outlined,
                         color: contentColor,
-                        decoration:
-                            isOver ? TextDecoration.lineThrough : null,
-                        decorationColor: contentColor,
+                        size: convertFigmaToUIWidth(20, width)),
+                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
+                    Flexible(
+                      child: Text(
+                        dateText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: convertFigmaToUIWidth(14, width),
+                          fontWeight: FontWeight.w400,
+                          color: contentColor,
+                          decoration:
+                              isOver ? TextDecoration.lineThrough : null,
+                          decorationColor: contentColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // --- Vertical Divider ---
@@ -1739,26 +1767,28 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
               ),
 
               // --- Time Section ---
-              Row(
-                children: [
-                  Icon(Icons.access_time,
-                      color: contentColor,
-                      size: convertFigmaToUIWidth(20, width)),
-                  SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                        maxWidth: convertFigmaToUIWidth(150, width) ?? 150),
-                    child: Text(
-                      timeText,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: convertFigmaToUIWidth(14, width),
-                        fontWeight: FontWeight.w400,
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.access_time,
                         color: contentColor,
+                        size: convertFigmaToUIWidth(20, width)),
+                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
+                    Flexible(
+                      child: Text(
+                        timeText,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: convertFigmaToUIWidth(14, width),
+                          fontWeight: FontWeight.w400,
+                          color: contentColor,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // --- Ticket & Arrow Section (NO divider) ---

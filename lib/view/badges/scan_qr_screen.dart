@@ -29,6 +29,15 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
   bool isDialgueOpen = false;
   bool isProcessing = false; // Add flag to prevent multiple scans
 
+  // DetectionSpeed.noDuplicates only suppresses repeats inside one running
+  // capture session, and _resumeScanner() restarts the session - so the badge
+  // still held in front of the lens is read again the moment the user returns
+  // from the feedback form. Remember the last code and ignore it for a few
+  // seconds so one physical scan stays one scan.
+  String? lastScannedCode;
+  DateTime? lastScannedAt;
+  static const Duration sameCodeCooldown = Duration(seconds: 5);
+
   @override
   void initState() {
     super.initState();
@@ -361,6 +370,17 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
 
     if (code == null) return;
 
+    // The same badge read again straight after the camera restarted is the same
+    // physical scan, not a new one - drop it.
+    final DateTime now = DateTime.now();
+    if (code == lastScannedCode &&
+        lastScannedAt != null &&
+        now.difference(lastScannedAt!) < sameCodeCooldown) {
+      return;
+    }
+    lastScannedCode = code;
+    lastScannedAt = now;
+
     setState(() {
       isProcessing = true;
     });
@@ -423,6 +443,16 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
             showCustomDialog(context, scanExhibitor['message']);
             return;
           }
+          // The scan itself is recorded either way. Only the feedback form is
+          // skipped when this visitor has already filled it in for this badge,
+          // since SubmitExhibitorFeedback.php would refuse it anyway. Stay on
+          // the scanner so the next badge can be scanned straight away.
+          if (scanExhibitor['feedbackSubmitted'] == 'true') {
+            showCustomDialog(context,
+                'You have already scanned this exhibitor and submitted your feedback.');
+            await _resumeScanner();
+            return;
+          }
           dynamic teamMemberDetails =
               await apiValue.getTeamMemberDetails(context, decodedId);
           if (teamMemberDetails != null) {
@@ -459,8 +489,13 @@ class _ScanQRScreenState extends State<ScanQRScreen> {
             Navigator.pop(context);
           }
         } else {
-          debugPrint('Invalid QR code');
-          Navigator.pop(context);
+          // scanExhibitor() returns null for every failure, a timeout included -
+          // and a timed-out request may well have been recorded by the server.
+          // Say so instead of the old silent "Invalid QR code" pop, which sent
+          // people back to rescan a badge that had in fact just been scanned.
+          debugPrint('Scan request failed');
+          showCustomDialog(context,
+              'We could not confirm the scan. Please check your connection and try again.');
         }
       }
     } catch (e) {
