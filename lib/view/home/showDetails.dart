@@ -1551,8 +1551,8 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
   }) {
     double width = MediaQuery.of(context).size.width;
 
-    // Dates already over are greyed out and simply labelled "Over" - no tick,
-    // as a check mark reads as "done/attended" rather than "this day has passed"
+    // Dates already over are only greyed out - the fade carries the meaning on
+    // its own, without a label or a strike through
     final bool isExpired = isDatePast(dateText);
     final Color contentColor =
         isExpired ? Colors.white.withOpacity(0.5) : Colors.white;
@@ -1603,9 +1603,6 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                       style: whiteTextStyle.copyWith(
                         fontSize: convertFigmaToUIWidth(14, width),
                         color: contentColor,
-                        decoration:
-                            isExpired ? TextDecoration.lineThrough : null,
-                        decorationColor: contentColor,
                       ),
                     ),
                   ),
@@ -1645,22 +1642,9 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
               ),
 
               // --- Ticket Section (NO divider) ---
-              // a day that has passed carries the plain "Over" label for every
-              // user type; the ticket action belongs to visitors on live days only
-              if (isExpired)
-                Row(
-                  children: [
-                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                    Text(
-                      "Over",
-                      style: whiteTextStyle.copyWith(
-                        fontSize: convertFigmaToUIWidth(12, width),
-                        color: contentColor,
-                      ),
-                    ),
-                  ],
-                )
-              else if (constant.userType == constant.visitorUser)
+              // a day that has passed just fades out - no label, no strike
+              // through; the ticket action belongs to visitors on live days only
+              if (!isExpired && constant.userType == constant.visitorUser)
                 Row(
                   children: [
                     SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
@@ -1722,9 +1706,6 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                         fontSize: convertFigmaToUIWidth(14, width),
                         fontWeight: FontWeight.w400,
                         color: contentColor,
-                        decoration:
-                            isOver ? TextDecoration.lineThrough : null,
-                        decorationColor: contentColor,
                       ),
                     ),
                   ),
@@ -1764,24 +1745,10 @@ class _ShowDetailsState extends State<ShowDetails> with WidgetsBindingObserver {
                 ],
               ),
 
-              // --- Ticket & Arrow Section (NO divider) ---
-              // a booking whose day has passed carries the plain label only - a tick
-              // reads as "done/attended" rather than "this day has passed"
-              if (isOver)
-                Row(
-                  children: [
-                    SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
-                    Text(
-                      "Over",
-                      style: TextStyle(
-                        fontSize: convertFigmaToUIWidth(12, width),
-                        fontWeight: FontWeight.w500,
-                        color: bookingAccent,
-                      ),
-                    ),
-                  ],
-                )
-              else if (showTicket)
+              // --- Ticket Section (NO divider) ---
+              // a booking whose day has passed just fades out - no label, no
+              // strike through
+              if (!isOver && showTicket)
                 Row(
                   children: [
                     SizedBox(width: convertFigmaToUIWidth(12, width) ?? 12),
