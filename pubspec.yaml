@@ -2,7 +2,7 @@ name: event_pro
 description: "A new Flutter project."
 publish_to: 'none' 
 
-version: 1.0.16+51361758
+version: 1.0.16+51361759
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

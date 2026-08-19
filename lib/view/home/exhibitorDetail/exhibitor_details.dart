@@ -1201,31 +1201,43 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
                                         },
                                         child: Visibility(
                                           visible: shouldShowRequestMeeting,
-                                          child: Container(
-                                            
-                                            height: convertFigmaToUIWidth(
-                                                60, width),
-                                            alignment: Alignment.center,
-                                            width: width,
-                                            decoration: BoxDecoration(
-                                                color: cyangreen,
-                                                borderRadius:
-                                                    BorderRadius.circular(30)),
-                                            child: Text(
-                                              // Once this visitor already has a
-                                              // meeting with the booth, the
-                                              // button is offering a second one
-                                              (exhibitorDetails!.meetingList
-                                                          ?.isNotEmpty ??
-                                                      false)
-                                                  ? "Request Another Meeting"
-                                                  : "Request Meeting",
-                                              style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.w500,
-                                                  fontSize:
-                                                      convertFigmaToUIWidth(
-                                                          16, width)),
+                                          // The pill is only as wide as its
+                                          // label plus padding, centred in the
+                                          // column, instead of spanning the
+                                          // full screen width.
+                                          child: Center(
+                                            child: Container(
+                                              height: convertFigmaToUIWidth(
+                                                  60, width),
+                                              alignment: Alignment.center,
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal:
+                                                    convertFigmaToUIWidth(
+                                                            32, width) ??
+                                                        32,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                  color: cyangreen,
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          30)),
+                                              child: Text(
+                                                // Once this visitor already has
+                                                // a meeting with the booth, the
+                                                // button offers a second one
+                                                (exhibitorDetails!.meetingList
+                                                            ?.isNotEmpty ??
+                                                        false)
+                                                    ? "Request Another Meeting"
+                                                    : "Request Meeting",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize:
+                                                        convertFigmaToUIWidth(
+                                                            14, width)),
+                                              ),
                                             ),
                                           ),
                                         ),
