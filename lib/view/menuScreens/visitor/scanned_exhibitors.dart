@@ -156,6 +156,11 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
     );
   }
 
+  /// convertFigmaToUIWidth is nullable at every call site; this keeps the
+  /// layout code free of `?? n` noise by falling back to the figma value.
+  double _sc(double figmaValue, double screenWidth) =>
+      convertFigmaToUIWidth(figmaValue, screenWidth) ?? figmaValue;
+
   Widget categoryBuilder() {
     var w = MediaQuery.of(context).size.width;
 
@@ -163,120 +168,288 @@ class _ScannedExhibitorsScreenState extends State<ScannedExhibitorsScreen> {
         _isSearching ? searchResult : scannedCategoryList;
 
     if (listToShow.isEmpty) {
-      return Center(
-        child: Text(
-          "No categories found",
-          style: TextStyle(
-            fontSize: convertFigmaToUIWidth(16, w),
-            color: Colors.grey,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+      // Scrollable empty state, so pull-to-refresh is still available to a
+      // visitor who scanned a badge and came straight back to this tab.
+      return RefreshIndicator(
+        color: cyangreen,
+        onRefresh: () async {
+          initialPref();
+        },
+        child: emptyStateBuilder(w),
       );
     }
 
+    // Grouped by show, the way the meetings list groups by date: the show name
+    // heads a section and the categories scanned at that show sit under it, so
+    // a visitor attending several shows can tell identically named categories
+    // apart without reading a caption on every tile.
+    Map<String, List<ScannedCategoryListModel>> groupedByShow = {};
+    for (var item in listToShow) {
+      // Keyed on the id so two shows sharing a name stay separate; the name is
+      // recovered from the first item of the group when the header is drawn.
+      String key = '${item.exhibitionId ?? ''}|${item.exhibitionName ?? ''}';
+      groupedByShow.putIfAbsent(key, () => []).add(item);
+    }
+
+    List<MapEntry<String, List<ScannedCategoryListModel>>> sections =
+        groupedByShow.entries.toList();
+
     return RefreshIndicator(
+      color: cyangreen,
       onRefresh: () async {
         initialPref();
       },
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 100),
-        child: GridView.builder(
-          shrinkWrap: true,
-          padding: EdgeInsets.all(20),
-          // Taller than the old fixed 150: the tile now carries the show name
-          // under the category, and the category can run to two lines. Scaled
-          // rather than a raw constant so it tracks the circle above it.
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 25,
-              mainAxisSpacing: 20,
-              mainAxisExtent: convertFigmaToUIWidth(175, w) ?? 175),
-          itemCount:
-              _isSearching ? searchResult.length : scannedCategoryList.length,
-          itemBuilder: (BuildContext context, int index) {
-            ScannedCategoryListModel scannedCategoryListItem =
-                _isSearching ? searchResult[index] : scannedCategoryList[index];
-        
-            return Column(
+      child: SingleChildScrollView(
+        // Always scrollable so pull-to-refresh still works when the single
+        // show on file does not fill the screen.
+        physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        child: Padding(
+          // Bottom room clears the floating bottom nav bar.
+          padding: EdgeInsets.only(top: _sc(6, w), bottom: 110),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: List.generate(sections.length, (i) {
+              return showSectionBuilder(sections[i].value, w);
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// One show = one card: its name heads the card and the categories scanned
+  /// at that show sit inside it, so the grouping is visible as a boundary and
+  /// not just as a run of tiles under a line of text.
+  Widget showSectionBuilder(List<ScannedCategoryListModel> list, double w) {
+    String showName = list.first.exhibitionName ?? '';
+
+    return Container(
+      margin: EdgeInsets.fromLTRB(_sc(16, w), _sc(14, w), _sc(16, w), 0),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(_sc(22, w)),
+        boxShadow: [
+          BoxShadow(
+            color: cyangreen.withOpacity(0.07),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+                _sc(16, w), _sc(16, w), _sc(16, w), _sc(14, w)),
+            child: Row(
               children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push<void>(
-                        context,
-                        MaterialPageRoute<void>(
-                            builder: (BuildContext context) =>
-                                CategoriesItemsListScreen(
-                                  isFromScan: false,
-                                  title:
-                                      scannedCategoryListItem.categoryName ?? '',
-                                  isScannedExhibitor: true,
-                                  categoryId: scannedCategoryListItem.id ?? '',
-                                  showDate: '',
-                                  isAfterScanExhibitortorId:
-                                      widget.isAfterScanExhibitortorId,
-                                  exhibitionId:
-                                      scannedCategoryListItem.exhibitionId,
-                                )));
-                  },
-                  child: Container(
-                    height: convertFigmaToUIWidth(100, w),
-                    width: convertFigmaToUIWidth(100, w),
-                    padding: EdgeInsets.all(20),
-                    margin: EdgeInsets.only(bottom: 3),
-                    decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                            color: Color.fromRGBO(255, 174, 176, 1), width: 1.5)),
-                    child: Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
-                            bottomLeft: Radius.circular(0),
-                            bottomRight: Radius.circular(0)),
-                        child: CachedNetworkImage(
-                            imageUrl: scannedCategoryListItem.imageLink ?? ''),
+                Container(
+                  height: _sc(36, w),
+                  width: _sc(36, w),
+                  decoration: BoxDecoration(
+                    color: cyangreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(_sc(11, w)),
+                  ),
+                  child: Icon(Icons.storefront_outlined,
+                      size: _sc(19, w), color: cyangreen),
+                ),
+                SizedBox(width: _sc(12, w)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        showName.isEmpty ? 'Other Shows' : showName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            height: 1.25,
+                            letterSpacing: 0.1,
+                            color: brownText,
+                            fontSize: _sc(14, w),
+                            fontWeight: FontWeight.w700),
+                      ),
+                      SizedBox(height: _sc(3, w)),
+                      Text(
+                        list.length == 1
+                            ? '1 category scanned'
+                            : '${list.length} categories scanned',
+                        style: TextStyle(
+                            height: 1.2,
+                            color: textColor.withOpacity(0.6),
+                            fontSize: _sc(11, w),
+                            fontWeight: FontWeight.w400),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Hairline under the header, indented to the text column so it reads
+          // as a divider inside the card rather than a second card edge.
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: _sc(16, w)),
+            child: Container(height: 1, color: cyangreen.withOpacity(0.08)),
+          ),
+          categoryGridBuilder(list, w),
+        ],
+      ),
+    );
+  }
+
+  Widget categoryGridBuilder(List<ScannedCategoryListModel> list, double w) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+          _sc(12, w), _sc(16, w), _sc(12, w), _sc(18, w)),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: _sc(8, w),
+          mainAxisSpacing: _sc(14, w),
+          // Circle + gap + two lines of label: sized so a one-line and a
+          // two-line category still top-align across the row.
+          mainAxisExtent: _sc(136, w)),
+      itemCount: list.length,
+      itemBuilder: (BuildContext context, int index) {
+        return categoryTileBuilder(list[index], w);
+      },
+    );
+  }
+
+  Widget categoryTileBuilder(ScannedCategoryListModel item, double w) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(_sc(14, w)),
+        onTap: () {
+          Navigator.push<void>(
+              context,
+              MaterialPageRoute<void>(
+                  builder: (BuildContext context) => CategoriesItemsListScreen(
+                        isFromScan: false,
+                        title: item.categoryName ?? '',
+                        isScannedExhibitor: true,
+                        categoryId: item.id ?? '',
+                        showDate: '',
+                        isAfterScanExhibitortorId:
+                            widget.isAfterScanExhibitortorId,
+                        exhibitionId: item.exhibitionId,
+                      )));
+        },
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: _sc(4, w)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: _sc(78, w),
+                width: _sc(78, w),
+                padding: EdgeInsets.all(_sc(13, w)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: white,
+                  border: Border.all(color: LightPinkShade, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: LightPinkShade.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                // ClipOval, not the old part-rounded ClipRRect: a square-ish
+                // logo was being clipped flat at the bottom inside a circle.
+                child: ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: item.imageLink ?? '',
+                    placeholder: (context, url) => Center(
+                      child: SizedBox(
+                        height: _sc(16, w),
+                        width: _sc(16, w),
+                        child: CircularProgressIndicator(
+                            strokeWidth: 1.6, color: LightPinkShade),
                       ),
                     ),
+                    errorWidget: (context, url, error) => Icon(
+                        Icons.image_not_supported_outlined,
+                        size: _sc(22, w),
+                        color: LightPinkShade),
                   ),
                 ),
-                SizedBox(height: convertFigmaToUIWidth(10, w)),
-                Text(
-                  scannedCategoryListItem.categoryName ?? '',
+              ),
+              SizedBox(height: _sc(9, w)),
+              Text(
+                item.categoryName ?? '',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    height: 1.25,
+                    letterSpacing: 0.1,
+                    fontSize: _sc(11.5, w),
+                    color: textColor,
+                    fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget emptyStateBuilder(double w) {
+    // Two different empty cases read very differently to a visitor: an empty
+    // search is a dead end to back out of, no scans at all is an invitation.
+    bool isSearchEmpty = _isSearching;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                height: _sc(88, w),
+                width: _sc(88, w),
+                decoration: BoxDecoration(
+                    shape: BoxShape.circle, color: white.withOpacity(0.7)),
+                child: Icon(
+                    isSearchEmpty
+                        ? Icons.search_off_rounded
+                        : Icons.qr_code_scanner_rounded,
+                    size: _sc(40, w),
+                    color: cyangreen.withOpacity(0.55)),
+              ),
+              SizedBox(height: _sc(18, w)),
+              Text(
+                isSearchEmpty ? 'No categories found' : 'Nothing scanned yet',
+                style: TextStyle(
+                    fontSize: _sc(16, w),
+                    color: brownText,
+                    fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: _sc(6, w)),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: _sc(50, w)),
+                child: Text(
+                  isSearchEmpty
+                      ? 'Try a different category name.'
+                      : 'Scan an exhibitor badge and they will appear here, grouped by show.',
                   textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      height: 1.2,
-                      fontSize: convertFigmaToUIWidth(12, w),
-                      color: textColor,
-                      fontWeight: FontWeight.w600),
+                      height: 1.45,
+                      fontSize: _sc(12, w),
+                      color: textColor.withOpacity(0.65),
+                      fontWeight: FontWeight.w400),
                 ),
-                // The show the category belongs to. Without it a visitor who
-                // has scanned at more than one show cannot tell two identically
-                // named categories apart. Kept as a quiet caption under the
-                // category, so the tile still reads category-first.
-                if ((scannedCategoryListItem.exhibitionName ?? '').isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(
-                        top: convertFigmaToUIWidth(3, w) ?? 3),
-                    child: Text(
-                      scannedCategoryListItem.exhibitionName ?? '',
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          height: 1.2,
-                          fontSize: convertFigmaToUIWidth(10, w),
-                          letterSpacing: 0.2,
-                          color: cyangreen,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-              ],
-            );
-          },
+              ),
+            ],
+          ),
         ),
       ),
     );
