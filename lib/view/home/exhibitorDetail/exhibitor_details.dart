@@ -245,25 +245,13 @@ class _ExhibitorDetailsScreenState extends State<ExhibitorDetailsScreen>
   // }
   Future<void> downloadCatalogAndNotify(
       String url, BuildContext context) async {
-    PermissionStatus status = await Permission.storage.request();
-
-    if (Platform.isAndroid) {
-      final androidInfo = await DeviceInfoPlugin().androidInfo;
-      if (androidInfo.version.sdkInt >= 30) {
-        status = await Permission.manageExternalStorage.request();
-      }
-    }
-
-    if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Storage permission denied.')),
-      );
-      return;
-    }
-
+    // Saved to the app's own storage sandbox (no runtime permission needed
+    // under Android scoped storage) and opened via a content:// URI, so this
+    // no longer requires broad/all-files storage access.
     String? path;
     if (Platform.isAndroid) {
-      path = '/storage/emulated/0/Download';
+      final dir = await getExternalStorageDirectory();
+      path = dir?.path;
     } else {
       path = (await getApplicationDocumentsDirectory()).path;
     }
