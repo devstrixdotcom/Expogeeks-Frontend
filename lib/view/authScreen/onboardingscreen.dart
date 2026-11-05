@@ -3,7 +3,7 @@ import 'package:event_pro/utils/helper_functions.dart';
 import 'package:event_pro/utils/images.dart';
 import 'package:event_pro/data/local/shared_pref_helper.dart';
 import 'package:event_pro/sharedwidget/elevated_button.dart';
-import 'package:event_pro/view/authScreen/login_screen.dart';
+import 'package:event_pro/view/authScreen/role_selection_screen.dart';
 import 'package:flutter/material.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -44,7 +44,7 @@ class OnboardingScreen extends StatelessWidget {
                 'Get Started',
                 () {
                   SharedPreferencesHelper.setIsFirstTime(firstTime: false);
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => LoginPage()), (route) => false);
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const RoleSelectionScreen()), (route) => false);
                 },
               ),
             ),

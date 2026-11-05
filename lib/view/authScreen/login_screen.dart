@@ -96,7 +96,21 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: convertFigmaToUIWidth(50, width)),
+              // Back arrow to the Staff / Visitor choice when opened from it.
+              if (Navigator.of(context).canPop())
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).padding.top, left: 4),
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back, color: cyangreen),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                )
+              else
+                SizedBox(height: convertFigmaToUIWidth(50, width)),
               Container(child: Image.asset(loginScreenImg, fit: BoxFit.cover)),
               Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -150,7 +164,34 @@ class _LoginPageState extends State<LoginPage> {
                       keyboardType: TextInputType.emailAddress,
                     ),
 
-                    
+                    SizedBox(
+                      height: convertFigmaToUIWidth(15, width) ?? 15,
+                    ),
+                    TextField(
+                      controller: _otpController,
+                      enabled: isOtpSent,
+                      decoration: InputDecoration(
+                        focusedBorder: inputBorderStyle,
+                        border: inputBorderStyle,
+                        enabledBorder: inputBorderStyle,
+                        disabledBorder: inputBorderStyle,
+                        contentPadding: EdgeInsets.symmetric(
+                            vertical: convertFigmaToUIWidth(16, width) ?? 16,
+                            horizontal: convertFigmaToUIWidth(16, width) ?? 16),
+                        fillColor: Color.fromRGBO(0, 0, 0, 0.02),
+                        filled: true,
+                        labelText: 'OTP',
+                        floatingLabelStyle: TextStyle(color: cyangreen),
+                        focusColor: black,
+                        labelStyle: TextStyle(
+                            fontSize: convertFigmaToUIWidth(16, width),
+                            fontWeight: FontWeight.w400),
+                      ),
+                      cursorColor: cyangreen,
+                      inputFormatters: [LengthLimitingTextInputFormatter(4)],
+                      keyboardType: TextInputType.number,
+                    ),
+
                     SizedBox(
                       height: convertFigmaToUIWidth(15, width) ?? 15,
                     ),
@@ -245,35 +286,6 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                       ),
-                    ),
-
-                    
-                    SizedBox(
-                      height: convertFigmaToUIWidth(15, width) ?? 15,
-                    ),
-                    TextField(
-                      controller: _otpController,
-                      enabled: isOtpSent,
-                      decoration: InputDecoration(
-                        focusedBorder: inputBorderStyle,
-                        border: inputBorderStyle,
-                        enabledBorder: inputBorderStyle,
-                        disabledBorder: inputBorderStyle,
-                        contentPadding: EdgeInsets.symmetric(
-                            vertical: convertFigmaToUIWidth(16, width) ?? 16,
-                            horizontal: convertFigmaToUIWidth(16, width) ?? 16),
-                        fillColor: Color.fromRGBO(0, 0, 0, 0.02),
-                        filled: true,
-                        labelText: 'OTP',
-                        floatingLabelStyle: TextStyle(color: cyangreen),
-                        focusColor: black,
-                        labelStyle: TextStyle(
-                            fontSize: convertFigmaToUIWidth(16, width),
-                            fontWeight: FontWeight.w400),
-                      ),
-                      cursorColor: cyangreen,
-                      inputFormatters: [LengthLimitingTextInputFormatter(4)],
-                      keyboardType: TextInputType.number,
                     ),
 
                     SizedBox(height: convertFigmaToUIWidth(30, width)),

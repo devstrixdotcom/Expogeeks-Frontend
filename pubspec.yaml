@@ -2,7 +2,7 @@ name: event_pro
 description: "A new Flutter project."
 publish_to: 'none' 
 
-version: 1.0.16+51361766
+version: 1.0.16+51361767
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -48,6 +48,11 @@ dependencies:
   connectivity_plus: ^6.1.4
   chewie: ^1.7.5
   flutter_launcher_icons: ^0.14.4
+  # --- merged from Expogeeks-Scanner (staff QR scanner) ---
+  gif: ^2.3.0
+  sqflite: ^2.3.3
+  path: ^1.9.0
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:

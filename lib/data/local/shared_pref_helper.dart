@@ -298,7 +298,11 @@ class SharedPreferencesHelper {
   //-------------------------------------------------------------------
 
   //-------------------------------------------------------------------
+  /// Clears the visitor/exhibitor session. Keys prefixed with `scanner_`
+  /// belong to the staff scanner and are left untouched.
   static void clearShareCache() {
-    _prefs.clear();
+    for (final key in _prefs.getKeys().toList()) {
+      if (!key.startsWith('scanner_')) _prefs.remove(key);
+    }
   }
 }

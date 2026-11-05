@@ -5,13 +5,15 @@ import 'package:event_pro/data/local/shared_pref_helper.dart';
 import 'package:event_pro/data/remote/get_user_data.dart';
 import 'package:event_pro/utils/color.dart';
 import 'package:event_pro/utils/helper_functions.dart';
-import 'package:event_pro/view/authScreen/login_screen.dart';
+import 'package:event_pro/view/authScreen/role_selection_screen.dart';
 import 'package:event_pro/view/authScreen/onboardingscreen.dart';
 import 'package:event_pro/view/badges/exhibitorBadge.dart';
 import 'package:event_pro/view/badges/scan_qr_screen.dart';
 import 'package:event_pro/view/badges/visitor_badge_screen.dart';
 import 'package:event_pro/view/home/home_screen.dart';
 import 'package:event_pro/view/menuScreens/common/menu_screen.dart';
+import 'package:event_pro/scanner/scanner_bootstrap.dart';
+import 'package:event_pro/scanner/view/home/home_screen.dart' as scanner;
 import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
@@ -24,6 +26,7 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 bool isLoggedIn = false;
 bool isFirstTime = true;
+bool isScannerLoggedIn = false;
 late Box hiveBox;
 
 void main() async {
@@ -82,6 +85,13 @@ Future<void> _initializePrefs() async {
       SharedPreferencesHelper.getCircularImageLink();
   if (isLoggedIn) {
     await GetUserData().getUserDetails();
+  }
+
+  // Staff (scanner) session is stored separately under `scanner_` keys.
+  try {
+    isScannerLoggedIn = await initScannerSession();
+  } catch (e) {
+    debugPrint(e.toString());
   }
 
   await Hive.initFlutter().then((value) async {
@@ -144,10 +154,16 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
       );
-    } else {
+    } else if (isScannerLoggedIn) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => scanner.HomeScreen()),
+      );
+    } else {
+      // Let the user choose Staff (scanner) or Visitor / Exhibitor first.
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
       );
     }
   }

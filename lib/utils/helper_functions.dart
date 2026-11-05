@@ -5,7 +5,7 @@ import 'dart:math';
 import 'package:event_pro/data/local/contants.dart';
 import 'package:event_pro/data/local/shared_pref_helper.dart';
 import 'package:event_pro/utils/color.dart';
-import 'package:event_pro/view/authScreen/login_screen.dart';
+import 'package:event_pro/view/authScreen/role_selection_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -44,7 +44,7 @@ showInvalidTokenDialog(BuildContext context) {
         Navigator.pushAndRemoveUntil<void>(
             context,
             MaterialPageRoute<void>(
-                builder: (BuildContext context) => LoginPage()),
+                builder: (BuildContext context) => const RoleSelectionScreen()),
             (route) => false);
       },
     ),
