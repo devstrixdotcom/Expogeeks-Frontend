@@ -49,3 +49,5 @@ app.*.map.json
 /android/*.jks
 /android/*.keystore
 /android/keystore_creds.txt
+/android/upload_certificate.pem
+/android/build/
