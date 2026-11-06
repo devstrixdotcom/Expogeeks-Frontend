@@ -5,7 +5,7 @@ import 'package:event_pro/data/local/shared_pref_helper.dart';
 import 'package:event_pro/data/remote/get_user_data.dart';
 import 'package:event_pro/utils/color.dart';
 import 'package:event_pro/utils/helper_functions.dart';
-import 'package:event_pro/view/authScreen/role_selection_screen.dart';
+import 'package:event_pro/view/authScreen/login_screen.dart';
 import 'package:event_pro/view/authScreen/onboardingscreen.dart';
 import 'package:event_pro/view/badges/exhibitorBadge.dart';
 import 'package:event_pro/view/badges/scan_qr_screen.dart';
@@ -160,10 +160,9 @@ class _SplashScreenWrapperState extends State<SplashScreenWrapper> {
         MaterialPageRoute(builder: (context) => scanner.HomeScreen()),
       );
     } else {
-      // Let the user choose Staff (scanner) or Visitor / Exhibitor first.
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
       );
     }
   }

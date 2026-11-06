@@ -9,7 +9,7 @@ import '../../sharedwidget/home_card_details.dart';
 import '../../utils/basic_route.dart';
 import '../../utils/color.dart';
 import '../../utils/helper_functions.dart';
-import 'package:event_pro/view/authScreen/role_selection_screen.dart';
+import 'package:event_pro/view/authScreen/login_screen.dart';
 import '../base_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!isLoggedIn) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const RoleSelectionScreen()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
         (route) => false,
       );
     }
@@ -131,13 +131,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             constant.userId = "";
                             constant.nameValue = "";
                             constant.emailValue = "";
-                            // Back to the Staff / Visitor choice, clearing
+                            // Back to the login screen, clearing
                             // the scanner screens from the back stack.
                             Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
                                 builder:
-                                    (context) => const RoleSelectionScreen(),
+                                    (context) => LoginPage(),
                               ),
                               (route) => false,
                             );

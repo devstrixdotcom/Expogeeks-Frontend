@@ -6,7 +6,7 @@ import 'package:event_pro/utils/helper_functions.dart';
 import 'package:event_pro/view/base_screen.dart';
 import 'package:event_pro/utils/basic_route.dart';
 import 'package:event_pro/utils/color.dart';
-import 'package:event_pro/view/authScreen/role_selection_screen.dart';
+import 'package:event_pro/view/authScreen/login_screen.dart';
 import 'package:event_pro/view/feedback/ExhibitorFlow/visitor_feedback_list.dart';
 import 'package:event_pro/view/menuScreens/exhibitor/exihibitors_mettings.dart';
 import 'package:event_pro/view/menuScreens/visitor/calendar_screen.dart';
@@ -277,7 +277,7 @@ class _MenuScreenState extends State<MenuScreen> {
         Navigator.pushAndRemoveUntil<void>(
             context,
             MaterialPageRoute<void>(
-                builder: (BuildContext context) => const RoleSelectionScreen()),
+                builder: (BuildContext context) => LoginPage()),
             (route) => false);
       },
     );

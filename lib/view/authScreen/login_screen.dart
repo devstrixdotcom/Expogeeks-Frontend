@@ -10,6 +10,7 @@ import 'package:event_pro/view/commonScreen/web_screen.dart';
 import 'package:event_pro/view/home/home_screen.dart';
 import 'package:event_pro/view/menuScreens/exhibitor/exihibitors_mettings.dart';
 import 'package:event_pro/view/menuScreens/common/my_profile.dart';
+import 'package:event_pro/scanner/view/authScreen/login_screen.dart' as scanner;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -514,6 +515,50 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
+
+                    // Event staff: open the scanner login.
+                    SizedBox(height: convertFigmaToUIWidth(10, width) ?? 10),
+                    Center(
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => scanner.LoginPage()),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.qr_code_scanner_rounded,
+                                  size: 18,
+                                  color: textColor.withOpacity(0.7)),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Event staff? ',
+                                style: TextStyle(
+                                    fontSize:
+                                        convertFigmaToUIWidth(14, width),
+                                    color: textColor),
+                              ),
+                              Text(
+                                'Login for Scanner',
+                                style: TextStyle(
+                                  fontSize: convertFigmaToUIWidth(14, width),
+                                  fontWeight: FontWeight.w600,
+                                  color: cyangreen,
+                                ),
+                              ),
+                              Icon(Icons.chevron_right_rounded,
+                                  size: 20, color: cyangreen),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: convertFigmaToUIWidth(10, width) ?? 10),
                   ],
                 ),
               ),
